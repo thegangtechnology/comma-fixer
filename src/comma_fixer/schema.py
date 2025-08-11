@@ -43,4 +43,4 @@ class Schema:
         return self.is_valid_functions[column_name](token)
     
     def __str__(self) -> str:
-        return f"{self.type}"
+        return f"{self.types}"
