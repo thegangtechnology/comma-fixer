@@ -3,12 +3,13 @@ from dataclasses import dataclass
 from typing import Callable, Optional, TypeAlias
 
 ColumnName: TypeAlias = str
+IsValidFunction: TypeAlias = Callable[[str], bool]
 
 
 @dataclass
 class Schema:
     types: dict[ColumnName, any]
-    is_valid_functions: dict[ColumnName, Callable[[str], bool]]
+    is_valid_functions: dict[ColumnName, Callable[[str], IsValidFunction]]
     has_commas: dict[ColumnName, bool]
 
     @classmethod
@@ -50,6 +51,9 @@ class Schema:
 
     def is_token_valid(self, token: str, column_name: str) -> bool:
         return self.is_valid_functions[column_name](token)
+
+    def get_column_names(self) -> list[str]:
+        return list(self.types.keys())
 
     def __str__(self) -> str:
         return f"{self.types}"
