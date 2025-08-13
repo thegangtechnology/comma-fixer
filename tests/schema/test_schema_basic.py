@@ -85,3 +85,17 @@ def test_nullable_int(schema):
 def test_invalid_column(schema):
     with pytest.raises(KeyError):
         schema.is_token_valid("something", "nonexistent")
+
+
+def test_get_column_names():
+    schema = Schema.new_schema()
+    schema.add_str_column("col1", True, False, False)
+    schema.add_int_column("col2", True, False, False)
+    assert set(schema.get_column_names()) == {"col1", "col2"}
+
+
+def test_schema_str_representation():
+    schema = Schema.new_schema()
+    schema.add_int_column("age", True, False, False)
+    string_repr = str(schema)
+    assert "'age': <class 'int'>" in string_repr
