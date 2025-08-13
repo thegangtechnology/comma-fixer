@@ -21,7 +21,7 @@ class Fixer:
 
     @classmethod
     def new(cls, schema: Schema) -> 'Fixer':
-        return Fixer(schema, pd.DataFrame(), list())
+        return Fixer(schema, pd.DataFrame(schema.series_types), list())
     
     def add_row(self, new_entry: str):
         processed_str = self.__check_valid(new_entry)
