@@ -19,8 +19,15 @@ class Schema:
     @classmethod
     def new_schema(cls) -> "Schema":
         return Schema(dict(), dict(), dict(), dict())
-    
-    def __create_is_valid_function(self, column_type: type, is_nullable: bool, has_commas: bool, has_spaces: bool, format: Optional[str] = None) -> Callable[[str], bool]:
+
+    def __create_is_valid_function(
+        self,
+        column_type: type,
+        is_nullable: bool,
+        has_commas: bool,
+        has_spaces: bool,
+        format: Optional[str] = None,
+    ) -> Callable[[str], bool]:
         def is_valid(input: str) -> bool:
             if len(input) == 0:
                 return is_nullable
@@ -39,8 +46,8 @@ class Schema:
                 return True
             except ValueError:
                 return False
-        return is_valid
 
+        return is_valid
 
     def add_column(
         self,
@@ -58,7 +65,13 @@ class Schema:
             self.series_types[column_name] = pd.Series(dtype=column_type)
         self.has_commas[column_name] = has_commas
 
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(column_type = column_type, is_nullable=is_nullable, has_commas=has_commas, has_spaces=has_spaces, format=format)
+        self.is_valid_functions[column_name] = self.__create_is_valid_function(
+            column_type=column_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+        )
 
     def add_str_column(
         self,
@@ -72,7 +85,13 @@ class Schema:
         self.series_types[column_name] = pd.Series(dtype=str)
         self.has_commas[column_name] = has_commas
 
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(column_type = str, is_nullable=is_nullable, has_commas=has_commas, has_spaces=has_spaces, format=format)
+        self.is_valid_functions[column_name] = self.__create_is_valid_function(
+            column_type=str,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+        )
 
     def add_int_column(
         self,
@@ -86,7 +105,13 @@ class Schema:
         self.series_types[column_name] = pd.Series(dtype=int)
         self.has_commas[column_name] = has_commas
 
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(column_type = int, is_nullable=is_nullable, has_commas=has_commas, has_spaces=has_spaces, format=format)
+        self.is_valid_functions[column_name] = self.__create_is_valid_function(
+            column_type=int,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+        )
 
     def add_float_column(
         self,
@@ -100,7 +125,13 @@ class Schema:
         self.series_types[column_name] = pd.Series(dtype=float)
         self.has_commas[column_name] = has_commas
 
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(column_type = float, is_nullable=is_nullable, has_commas=has_commas, has_spaces=has_spaces, format=format)
+        self.is_valid_functions[column_name] = self.__create_is_valid_function(
+            column_type=float,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+        )
 
     def add_datetime_column(
         self,
@@ -114,7 +145,13 @@ class Schema:
         self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
         self.has_commas[column_name] = has_commas
 
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(column_type = np.datetime64, is_nullable=is_nullable, has_commas=has_commas, has_spaces=has_spaces, format=format)
+        self.is_valid_functions[column_name] = self.__create_is_valid_function(
+            column_type=np.datetime64,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+        )
 
     def is_token_valid(self, token: str, column_name: str) -> bool:
         return self.is_valid_functions[column_name](token)
