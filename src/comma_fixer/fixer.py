@@ -11,6 +11,7 @@ from comma_fixer.schema import Schema
 
 ParsedEntry: TypeAlias = list[str]
 Path: TypeAlias = list[tuple[int, int]]
+ValidityMatrix: TypeAlias = np.array
 
 logger = logging.getLogger("Fixer Logs")
 
@@ -45,10 +46,10 @@ class Fixer:
                 line_count += 1
 
     def __check_valid(self, new_entry: str) -> Optional[ParsedEntry]:
-        validity_matrix = self.__construct_validity_matrix(new_entry)
+        validity_matrix = self.__construct_validity_matrix(new_entry=new_entry)
         tokens = new_entry.split(",")
         (num_tokens, num_cols) = validity_matrix.shape
-        paths = self.__find_shortest_paths(validity_matrix)
+        paths = self.__find_shortest_paths(validity_matrix=validity_matrix)
 
         if paths is not None and len(paths) > 1:
             logger.warning("Multiple paths found -- needs to be resolved")
@@ -56,7 +57,7 @@ class Fixer:
         elif paths is not None:
             for path in paths:
                 return self.__construct_processed_entry_from_path(
-                    path, tokens, num_cols, num_tokens
+                    path=path, tokens=tokens, num_cols=num_cols, num_tokens=num_tokens
                 )
         return None
 
@@ -73,7 +74,7 @@ class Fixer:
                 processed_entry[step[1]] = tokens[step[0]]
         return processed_entry
 
-    def __construct_validity_matrix(self, new_entry: str) -> np.array:
+    def __construct_validity_matrix(self, new_entry: str) -> ValidityMatrix:
         tokens = new_entry.split(",")
         num_cols = len(self.schema.get_column_names())
         num_tokens = len(tokens)
@@ -84,12 +85,12 @@ class Fixer:
             first_valid_index = -1
             for column_index, column_name in enumerate(self.schema.get_column_names()):
                 preceding_zero = self.__check_preceding_zero_in_path(
-                    validity_matrix, token_index, column_index
+                    validity_matrix=validity_matrix, token_index=token_index, column_index=column_index
                 )
                 if preceding_zero or token_index == 0:
                     validity_matrix[token_index][column_index] = (
                         0
-                        if self.schema.is_token_valid(token.strip(), column_name)
+                        if self.schema.is_token_valid(token=token.strip(), column_name=column_name)
                         else 1
                     )
                     if (
@@ -138,25 +139,25 @@ class Fixer:
                 if row < num_tokens and column < num_columns:
                     if validity_matrix[row][column] != 1:
                         G.add_edge(
-                            (row, column),
-                            (row + 1, column + 1),
+                            u_of_edge=(row, column),
+                            v_of_edge=(row + 1, column + 1),
                             weight=validity_matrix[row][column],
                         )
                         G.add_edge(
-                            (row, column),
-                            (row + 1, column),
+                            u_of_edge=(row, column),
+                            v_of_edge=(row + 1, column),
                             weight=validity_matrix[row][column],
                         )
                 elif row < num_tokens and column == num_columns - 1:
                     if validity_matrix[row][column] != 1:
                         G.add_edge(
-                            (row, column),
-                            (row + 1, column),
+                            u_of_edge=(row, column),
+                            v_of_edge=(row + 1, column),
                             weight=validity_matrix[row][column],
                         )
         try:
             return list(
-                nx.all_shortest_paths(G, (0, 0), (num_tokens, num_columns), "weight")
+                nx.all_shortest_paths(G=G, source=(0, 0), target=(num_tokens, num_columns), weight="weight")
             )
         except NetworkXNoPath:
             logger.warning("No paths found")
@@ -166,4 +167,4 @@ class Fixer:
             return None
 
     def export_to_csv(self, filepath: str):
-        self.processed.to_csv(filepath)
+        self.processed.to_csv(path_or_buf=filepath)
