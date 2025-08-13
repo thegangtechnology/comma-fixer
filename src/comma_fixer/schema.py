@@ -96,9 +96,9 @@ class Schema:
     def add_int_column(
         self,
         column_name: str,
-        is_nullable: bool,
-        has_commas: bool,
-        has_spaces: bool,
+        is_nullable: bool = False,
+        has_commas: bool = False,
+        has_spaces: bool = False,
         format: Optional[str] = None,
     ):
         self.types[column_name] = int
@@ -116,9 +116,9 @@ class Schema:
     def add_float_column(
         self,
         column_name: str,
-        is_nullable: bool,
-        has_commas: bool,
-        has_spaces: bool,
+        is_nullable: bool = False,
+        has_commas: bool = False,
+        has_spaces: bool = False,
         format: Optional[str] = None,
     ):
         self.types[column_name] = float
@@ -136,9 +136,9 @@ class Schema:
     def add_datetime_column(
         self,
         column_name: str,
-        is_nullable: bool,
-        has_commas: bool,
-        has_spaces: bool,
+        is_nullable: bool = False,
+        has_commas: bool = False,
+        has_spaces: bool = False,
         format: Optional[str] = None,
     ):
         self.types[column_name] = np.datetime64
