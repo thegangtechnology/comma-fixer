@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import logging
 from typing import Optional, TypeAlias
 
-from networkx import NetworkXNoPath
+from networkx import NetworkXNoPath, NodeNotFound
 from comma_fixer.schema import Schema
 import pandas as pd
 import numpy as np
@@ -35,9 +35,12 @@ class Fixer:
         line_count = 0
         with open(filepath) as file:
             for line in file:
+                line = line.strip()
                 if not skip_first_line:
                     self.add_row(line)
-                line = line.strip()
+                else:
+                    skip_first_line = not skip_first_line
+                line_count += 1
 
     def __check_valid(self, new_entry: str) -> Optional[ParsedEntry]:
         validity_matrix = self.__construct_validity_matrix(new_entry)
@@ -61,7 +64,7 @@ class Fixer:
         return processed_entry
     
     def __construct_validity_matrix(self, new_entry: str) -> np.array:
-        tokens = input.split(',')
+        tokens = new_entry.split(',')
         num_cols = len(self.schema.get_column_names())
         num_tokens = len(tokens)
         validity_matrix = np.ones((num_tokens, num_cols))
@@ -111,4 +114,7 @@ class Fixer:
             return list(nx.all_shortest_paths(G, (0,0), (num_tokens, num_columns), "weight"))
         except NetworkXNoPath:
             logger.warning("No paths found")
+            return None
+        except NodeNotFound:
+            logger.warning("Source node (0,0) not found")
             return None
