@@ -1,7 +1,9 @@
-import pytest
-import pandas as pd
-import numpy as np
 from unittest.mock import MagicMock
+
+import numpy as np
+import pandas as pd
+import pytest
+
 from comma_fixer.fixer import Fixer
 from comma_fixer.schema import Schema
 
@@ -9,9 +11,9 @@ from comma_fixer.schema import Schema
 @pytest.fixture
 def mock_schema():
     schema = Schema.new_schema()
-    schema.add_column("col1", str, False, False, False, r'^(?!INVALID$).*$')
-    schema.add_column("col2", str, False, False, False, r'^(?!INVALID$).*$')
-    schema.add_column("col3", str, False, False, False, r'^(?!INVALID$).*$')
+    schema.add_column("col1", str, False, False, False, r"^(?!INVALID$).*$")
+    schema.add_column("col2", str, False, False, False, r"^(?!INVALID$).*$")
+    schema.add_column("col3", str, False, False, False, r"^(?!INVALID$).*$")
     return schema
 
 
@@ -68,11 +70,7 @@ def test_construct_validity_matrix_with_invalid_token(mock_schema):
 
 def test_check_preceding_zero_in_path():
     fixer = Fixer.new(MagicMock())
-    matrix = np.array([
-        [0, 0, 1],
-        [1, 1, 1],
-        [1, 1, 1]
-    ])
+    matrix = np.array([[0, 0, 1], [1, 1, 1], [1, 1, 1]])
     # Check for position (1, 1) which has preceding zeros
     assert fixer._Fixer__check_preceding_zero_in_path(matrix, 1, 1) is True
     # Position (2, 2) does not have a preceding 0
@@ -82,10 +80,7 @@ def test_check_preceding_zero_in_path():
 def test_find_shortest_paths_returns_path():
     fixer = Fixer.new(MagicMock())
     # Valid path in simple 2x2 case
-    matrix = np.array([
-        [0, 1],
-        [1, 0]
-    ])
+    matrix = np.array([[0, 1], [1, 0]])
     paths = fixer._Fixer__find_shortest_paths(matrix)
     assert isinstance(paths, list)
     assert all(isinstance(p, list) for p in paths)
@@ -95,9 +90,6 @@ def test_find_shortest_paths_returns_path():
 def test_find_shortest_paths_returns_none_on_no_path():
     fixer = Fixer.new(MagicMock())
     # Blocked matrix (all invalid)
-    matrix = np.array([
-        [1, 1],
-        [1, 1]
-    ])
+    matrix = np.array([[1, 1], [1, 1]])
     result = fixer._Fixer__find_shortest_paths(matrix)
     assert result is None

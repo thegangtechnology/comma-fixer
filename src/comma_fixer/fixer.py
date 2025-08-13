@@ -86,7 +86,7 @@ class Fixer:
                 preceding_zero = self.__check_preceding_zero_in_path(
                     validity_matrix, token_index, column_index
                 )
-                if preceding_zero == True or token_index == 0:
+                if preceding_zero or token_index == 0:
                     validity_matrix[token_index][column_index] = (
                         0
                         if self.schema.is_token_valid(token.strip(), column_name)
@@ -94,13 +94,11 @@ class Fixer:
                     )
                     if (
                         token_index > 0
-                        and self.schema.has_commas[column_name] == False
+                        and not self.schema.has_commas[column_name]
                         and validity_matrix[token_index - 1][column_index] == 0
                     ):
                         validity_matrix[token_index][column_index] = 1
-                    elif (
-                        len(token) == 0 and self.schema.has_commas[column_name] == True
-                    ):
+                    elif len(token) == 0 and self.schema.has_commas[column_name]:
                         validity_matrix[token_index][column_index] = 0
                 else:
                     continue

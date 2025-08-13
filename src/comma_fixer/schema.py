@@ -31,7 +31,7 @@ class Schema:
     ):
         self.types[column_name] = column_type
         if column_type == np.datetime64:
-            self.series_types[column_name] = pd.Series(dtype=f"datetime64[ns]")
+            self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
         else:
             self.series_types[column_name] = pd.Series(dtype=column_type)
         self.has_commas[column_name] = has_commas
