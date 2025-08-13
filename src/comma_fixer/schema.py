@@ -2,6 +2,9 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Optional, TypeAlias
 
+import numpy as np
+import pandas as pd
+
 ColumnName: TypeAlias = str
 IsValidFunction: TypeAlias = Callable[[str], bool]
 
@@ -9,12 +12,13 @@ IsValidFunction: TypeAlias = Callable[[str], bool]
 @dataclass
 class Schema:
     types: dict[ColumnName, any]
+    series_types: dict[ColumnName, any]
     is_valid_functions: dict[ColumnName, Callable[[str], IsValidFunction]]
     has_commas: dict[ColumnName, bool]
 
     @classmethod
     def new_schema(cls) -> "Schema":
-        return Schema(dict(), dict(), dict())
+        return Schema(dict(), dict(), dict(), dict())
 
     def add_column(
         self,
@@ -26,6 +30,10 @@ class Schema:
         format: Optional[str] = None,
     ):
         self.types[column_name] = column_type
+        if column_type == np.datetime64:
+            self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
+        else:
+            self.series_types[column_name] = pd.Series(dtype=column_type)
         self.has_commas[column_name] = has_commas
 
         def is_valid(input: str) -> bool:
