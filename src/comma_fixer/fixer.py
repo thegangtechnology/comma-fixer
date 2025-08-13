@@ -11,7 +11,7 @@ from comma_fixer.schema import Schema
 
 ParsedEntry: TypeAlias = list[str]
 Path: TypeAlias = list[tuple[int, int]]
-ValidityMatrix: TypeAlias = np.array
+ValidityMatrix: TypeAlias = np.ndarray
 
 logger = logging.getLogger("Fixer Logs")
 
@@ -44,6 +44,10 @@ class Fixer:
                 else:
                     skip_first_line = not skip_first_line
                 line_count += 1
+        print(
+            f"File has been processed!\nNumber of valid entries: {len(self.processed)}\n \
+            Number of invalid entries: {len(self.invalid)}"
+        )
 
     def __check_valid(self, new_entry: str) -> Optional[ParsedEntry]:
         validity_matrix = self.__construct_validity_matrix(new_entry=new_entry)
@@ -85,12 +89,16 @@ class Fixer:
             first_valid_index = -1
             for column_index, column_name in enumerate(self.schema.get_column_names()):
                 preceding_zero = self.__check_preceding_zero_in_path(
-                    validity_matrix=validity_matrix, token_index=token_index, column_index=column_index
+                    validity_matrix=validity_matrix,
+                    token_index=token_index,
+                    column_index=column_index,
                 )
                 if preceding_zero or token_index == 0:
                     validity_matrix[token_index][column_index] = (
                         0
-                        if self.schema.is_token_valid(token=token.strip(), column_name=column_name)
+                        if self.schema.is_token_valid(
+                            token=token.strip(), column_name=column_name
+                        )
                         else 1
                     )
                     if (
@@ -157,7 +165,12 @@ class Fixer:
                         )
         try:
             return list(
-                nx.all_shortest_paths(G=G, source=(0, 0), target=(num_tokens, num_columns), weight="weight")
+                nx.all_shortest_paths(
+                    G=G,
+                    source=(0, 0),
+                    target=(num_tokens, num_columns),
+                    weight="weight",
+                )
             )
         except NetworkXNoPath:
             logger.warning("No paths found")
