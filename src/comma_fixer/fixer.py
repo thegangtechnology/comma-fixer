@@ -164,3 +164,6 @@ class Fixer:
         except NodeNotFound:
             logger.warning("Source node (0,0) not found")
             return None
+
+    def export_to_csv(self, filepath: str):
+        self.processed.to_csv(filepath)
