@@ -6,21 +6,38 @@ import numpy as np
 import pandas as pd
 
 ColumnName: TypeAlias = str
+"""
+    TypeAlias for string
+"""
 IsValidFunction: TypeAlias = Callable[[str], bool]
+"""
+    TypeAlias for Callable[[str], bool]
+"""
 
 
 @dataclass
 class Schema:
     """
-    Class containing information on a dataset's columns. 
+    Class containing information on a dataset's columns.
 
-    Stores the column type, functions for checking whether an 
-    element can be placed in the column, and whether the column 
+    Stores the column type, functions for checking whether an
+    element can be placed in the column, and whether the column
     allows commas.
+
+    Attributes:
+        types (dict[ColumnName, any]): Dictionary containing the
+        types associated with each column.
+        series_types (dict[ColumnName, any]): Dictionary containing
+        the panda.Series types associated with each column for initialising a DataFrame.
+        is_valid_functions (dict[ColumnName, IsValidFunction]): Dictionary containing
+        functions to determine whether a token can be placed in a column.
+        has_commas (dict[ColumnName, bool]): Dictionary containing
+        booleans on whether a column can contain commas.
     """
+
     types: dict[ColumnName, any]
     series_types: dict[ColumnName, any]
-    is_valid_functions: dict[ColumnName, Callable[[str], IsValidFunction]]
+    is_valid_functions: dict[ColumnName, IsValidFunction]
     has_commas: dict[ColumnName, bool]
 
     @classmethod

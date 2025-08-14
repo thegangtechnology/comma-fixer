@@ -18,15 +18,54 @@ logger = logging.getLogger("Fixer Logs")
 
 @dataclass
 class Fixer:
+    """
+    Class for fixing malformed CSV files.
+
+    Contains a dataframe to hold processed entries from
+    the CSV file, a Schema object which defines the dataframe,
+    and a list of invalid entries (i.e. entries that may contain
+    more than one method of grouping to fit into schema).
+
+    Attributes:
+        schema (`Schema`): Schema object defining the columns
+        of the dataset.
+        processed (pandas.DataFrame): DataFrame containing processed
+        and valid entries of the dataset.
+        invalid (list[str]): List containing invalid entries that
+        do not fit or contain multiple ways of fitting with schema.
+    """
+
     schema: Schema
     processed: pd.DataFrame
     invalid: list[str]
 
     @classmethod
     def new(cls, schema: Schema) -> "Fixer":
+        """ "
+        Create a new Fixer class with a Schema object.
+
+        Initialise a DataFrame with the Schema, and an empty list
+        of invalid entries.
+
+        Args:
+            schema (`Schema`): Schema defining column name, type, and
+            validity functions.
+
+        Returns:
+            Fixer. Fixer object with initialised DataFrame according to Schema.
+        """
         return Fixer(schema, pd.DataFrame(schema.series_types), list())
 
     def add_row(self, new_entry: str):
+        """
+        Processes a new row against the columns in the schema.
+
+        Adds the row into processed DataFrame if valid, otherwise
+        appends it to the list of invalid entries.
+
+        Args:
+            new_entry (str): Row to be processed.
+        """
         processed_str = self.__check_valid(new_entry)
         if processed_str is not None:
             row_to_add = len(self.processed)
@@ -35,6 +74,16 @@ class Fixer:
             self.invalid.append(new_entry)
 
     def fix_file(self, filepath: str, skip_first_line: bool = True):
+        """
+        Processes a CSV file line by line using schema,
+        and separates valid entries from invalid entries.
+
+        After processing, prints out the number of valid entries against invalid entries.
+
+        Args:
+            filepath (str): Filepath of CSV file to be processed.
+            skip_first_line (bool): Whether or not to skip the first line.
+        """
         line_count = 0
         with open(filepath) as file:
             for line in file:
@@ -50,6 +99,19 @@ class Fixer:
         )
 
     def __check_valid(self, new_entry: str) -> Optional[ParsedEntry]:
+        """
+        Checks whether a row is valid and returns the parsed entry if valid.
+
+        Tokenises the row by delimiter and checks which tokens can be placed
+        in which columns. If a valid parsing exists, returns it as a list of
+        tokens.
+
+        Args:
+            new_entry (str): Row to be processed.
+
+        Returns:
+            Optional[ParsedEntry]: List of parsed tokens if the row is valid.
+        """
         validity_matrix = self.__construct_validity_matrix(new_entry=new_entry)
         tokens = new_entry.split(",")
         (num_tokens, num_cols) = validity_matrix.shape
@@ -67,11 +129,27 @@ class Fixer:
 
     def __construct_processed_entry_from_path(
         self,
-        path: list[tuple[int, int]],
+        path: Path,
         tokens: list[str],
         num_cols: int,
         num_tokens: int,
-    ) -> list[str]:
+    ) -> ParsedEntry:
+        """
+        Constructs a ParsedEntry from a valid path and given tokens.
+
+        Args:
+            path (Path): List of tuples of the shortest path that
+            creates a parsed entry from the validity matrix.
+            tokens (list[str]): List of tokens from splitting entry
+            string by the delimiter.
+            num_cols (int): Number of columns in schema.
+            num_tokens (int): Number of tokens after splitting entry
+            string by the delimiter.
+
+        Returns:
+            ParsedEntry. List of tokens parsed such that the entry is valid
+            according to the schema.
+        """
         processed_entry = ["" for _ in range(num_cols)]
         for step in path:
             if step[0] < num_tokens and step[1] < num_cols:
@@ -79,6 +157,23 @@ class Fixer:
         return processed_entry
 
     def __construct_validity_matrix(self, new_entry: str) -> ValidityMatrix:
+        """
+        Constructs a validity matrix from the entry string against the
+        columns in schema.
+
+        ValidityMatrix of size number of tokens by number of columns in schema,
+        where the number of tokens is obtained from splitting entry string by
+        the delimiter.
+
+        Entries in the matrix are either 0 or 1, where 0 denotes that the
+        token can be placed in that column, and 1 otherwise.
+
+        Args:
+            new_entry (str): String to be processed.
+
+        Returns:
+            ValidityMatrix. Matrix of size number of tokens by number of columns in schema.
+        """
         tokens = new_entry.split(",")
         num_cols = len(self.schema.get_column_names())
         num_tokens = len(tokens)
@@ -126,8 +221,28 @@ class Fixer:
         return validity_matrix
 
     def __check_preceding_zero_in_path(
-        self, validity_matrix: np.array, token_index: int, column_index: int
+        self, validity_matrix: ValidityMatrix, token_index: int, column_index: int
     ) -> bool:
+        """
+        Checks whether the preceding elements in the matrix given an entry are 0,
+        resulting in a valid path.
+
+        Given `(token_index, column_index)`, checks whether the preceding elements
+        in the path leading to the current element is valid, which creates a valid
+        path.
+
+        Preceding elements is the previous token in the same column,
+        and the previous token in the prior columnn.
+
+        Args:
+            validity_matrix (ValidityMatrix): Matrix to check whether preceding elements
+            in path are valid.
+            token_index (int): Current token/row being validated.
+            column_index (int): Current column being validated.
+
+        Returns:
+            Boolean. Returns True if the path to current element is valid, and False otherwise.
+        """
         if column_index > 0 and token_index > 0:
             if (
                 validity_matrix[token_index - 1][column_index - 1] == 0
@@ -139,7 +254,24 @@ class Fixer:
                 return True
         return False
 
-    def __find_shortest_paths(self, validity_matrix: np.array) -> Optional[list[Path]]:
+    def __find_shortest_paths(
+        self, validity_matrix: ValidityMatrix
+    ) -> Optional[list[Path]]:
+        """
+        Finds the shortest paths from the constructed validity matrix if one exists using networkx.
+
+        Constructs a networkx directed acyclic graph from the validity matrix and
+        finds the shortest paths such that the first token is in the first column, and the
+        final token is in the final column.
+
+        Args:
+            validity_matrix (ValidityMatrix): Validity matrix constructed from the entry
+            to be processed against schema columns.
+
+        Returns:
+            Optional[list[Path]]. Returns a list of shortest paths if at least one exists, and
+            None otherwise.
+        """
         (num_tokens, num_columns) = validity_matrix.shape
         G = nx.DiGraph()
         for row in range(num_tokens + 1):
@@ -180,4 +312,7 @@ class Fixer:
             return None
 
     def export_to_csv(self, filepath: str):
+        """
+        Exports the processed entries into a CSV file.
+        """
         self.processed.to_csv(path_or_buf=filepath)
