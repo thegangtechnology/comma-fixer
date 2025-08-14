@@ -2,9 +2,10 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Optional, TypeAlias
 
-from comma_fixer.column import Column
 import numpy as np
 import pandas as pd
+
+from comma_fixer.column import Column
 
 ColumnName: TypeAlias = str
 """
@@ -35,6 +36,7 @@ class Schema:
         has_commas (dict[ColumnName, bool]): Dictionary containing
         booleans on whether a column can contain commas.
     """
+
     columns: dict[ColumnName, Column]
     series_types: dict[ColumnName, type]
 
@@ -130,7 +132,15 @@ class Schema:
             format=format,
         )
 
-        new_column = Column.new(name=column_name, data_type=column_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        new_column = Column.new(
+            name=column_name,
+            data_type=column_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+            is_valid=is_valid,
+        )
         if column_type == np.datetime64:
             self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
         else:
@@ -166,10 +176,17 @@ class Schema:
             format=format,
         )
 
-        new_column = Column.new(name=column_name, data_type=data_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        new_column = Column.new(
+            name=column_name,
+            data_type=data_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+            is_valid=is_valid,
+        )
         self.series_types[column_name] = pd.Series(dtype=data_type)
         self.columns[column_name] = new_column
-
 
     def add_int_column(
         self,
@@ -200,7 +217,15 @@ class Schema:
             format=format,
         )
 
-        new_column = Column.new(name=column_name, data_type=data_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        new_column = Column.new(
+            name=column_name,
+            data_type=data_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+            is_valid=is_valid,
+        )
         self.series_types[column_name] = pd.Series(dtype=data_type)
         self.columns[column_name] = new_column
 
@@ -233,7 +258,15 @@ class Schema:
             format=format,
         )
 
-        new_column = Column.new(name=column_name, data_type=data_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        new_column = Column.new(
+            name=column_name,
+            data_type=data_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+            is_valid=is_valid,
+        )
         self.series_types[column_name] = pd.Series(dtype=data_type)
         self.columns[column_name] = new_column
 
@@ -266,10 +299,17 @@ class Schema:
             format=format,
         )
 
-        new_column = Column.new(name=column_name, data_type=data_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        new_column = Column.new(
+            name=column_name,
+            data_type=data_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
+            is_valid=is_valid,
+        )
         self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
         self.columns[column_name] = new_column
-
 
     def is_token_valid(self, token: str, column_name: str) -> bool:
         """
@@ -299,12 +339,21 @@ class Schema:
 
     def __str__(self) -> str:
         return f"{self.types}"
-    
+
     def schema_info(self):
         """
         Prints out information about the current schema.
         """
-        schema_df = pd.DataFrame(columns=["name", "type", "nullable", "has commas", "has spaces", "format"])
+        schema_df = pd.DataFrame(
+            columns=["name", "type", "nullable", "has commas", "has spaces", "format"]
+        )
         for column_name, column in list(self.columns.items()):
-            schema_df.loc[len(schema_df)] = [column_name, column.get_type().__name__,column.is_nullable(),column.has_commas(),column.has_spaces(),column.get_format()]
+            schema_df.loc[len(schema_df)] = [
+                column_name,
+                column.get_type().__name__,
+                column.is_nullable(),
+                column.has_commas(),
+                column.has_spaces(),
+                column.get_format(),
+            ]
         return schema_df.style

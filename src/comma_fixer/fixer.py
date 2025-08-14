@@ -3,11 +3,10 @@ from dataclasses import dataclass
 from typing import Optional, TypeAlias
 
 import networkx as nx
-from comma_fixer.parsed import Parsed
 import numpy as np
-import pandas as pd
 from networkx import NetworkXNoPath, NodeNotFound
 
+from comma_fixer.parsed import Parsed
 from comma_fixer.schema import Schema
 
 ParsedEntry: TypeAlias = list[str]
@@ -59,7 +58,6 @@ class Fixer:
             new_entry (str): Row to be processed.
         """
         return self.__check_valid(new_entry)
-        
 
     def fix_file(self, filepath: str, skip_first_line: bool = True) -> Parsed:
         """
@@ -72,14 +70,14 @@ class Fixer:
             filepath (str): Filepath of CSV file to be processed.
             skip_first_line (bool): Whether or not to skip the first line.
         """
-        parsed = Parsed.new(schema = self.schema)
+        parsed = Parsed.new(schema=self.schema)
         line_count = 0
         with open(filepath) as file:
             for line in file:
                 line = line.strip()
                 if not skip_first_line:
                     processed_entry = self.process_row(line)
-                    if not processed_entry == None:
+                    if processed_entry is not None:
                         parsed.add_valid_entry(processed_entry)
                     else:
                         parsed.add_invalid_entry(line_index=line_count, entry=line)
@@ -196,7 +194,10 @@ class Fixer:
                         and validity_matrix[token_index - 1][column_index] == 0
                     ):
                         validity_matrix[token_index][column_index] = 1
-                    elif len(token) == 0 and self.schema.columns[column_name].has_commas():
+                    elif (
+                        len(token) == 0
+                        and self.schema.columns[column_name].has_commas()
+                    ):
                         validity_matrix[token_index][column_index] = 0
                 else:
                     continue

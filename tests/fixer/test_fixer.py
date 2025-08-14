@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from comma_fixer.fixer import Fixer
@@ -32,7 +31,7 @@ def test_add_valid_row(fixer):
 def test_add_invalid_row(fixer):
     fixer._Fixer__check_valid = lambda entry: None
     res = fixer.process_row("bad,data")
-    assert res == None
+    assert res is None
 
 
 def test_construct_processed_entry_from_path(fixer):
