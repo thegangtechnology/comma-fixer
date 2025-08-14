@@ -50,9 +50,9 @@ class Parsed:
         for token in entry:
             if "," in token:
                 if len(processed_entry) != 0:
-                    processed_entry = f"{processed_entry},'{token}'"
+                    processed_entry = f'{processed_entry},"{token}"'
                 else:
-                    processed_entry = f"'{token}'"
+                    processed_entry = f'"{token}"'
             else:
                 if len(processed_entry) != 0:
                     processed_entry = f"{processed_entry},{token}"
@@ -87,9 +87,9 @@ class Parsed:
         processed_to_csv = pd.DataFrame(self.schema.series_types)
         for line_number, line in enumerate(self.processed.split("\n")):
             if (line_number, line) not in self.invalid_line_numbers:
-                processed_to_csv.loc[len(processed_to_csv)] = list(csv.reader([line]))[
-                    0
-                ]
+                parsed_csv = list(csv.reader([line]))[0]
+                print(parsed_csv)
+                processed_to_csv.loc[len(processed_to_csv)] = parsed_csv
         return processed_to_csv.to_csv(filepath, index=False)
 
     def print_all_invalid_entries(self):
