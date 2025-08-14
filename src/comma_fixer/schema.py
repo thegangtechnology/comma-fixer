@@ -139,6 +139,8 @@ class Schema:
         )
         if column_type == np.datetime64:
             self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
+        elif column_type == str:
+            self.series_types[column_name] = pd.Series(dtype="object")
         else:
             self.series_types[column_name] = pd.Series(dtype=column_type)
         self.columns[column_name] = new_column
@@ -182,7 +184,7 @@ class Schema:
             format=format,
             is_valid=is_valid,
         )
-        self.series_types[column_name] = pd.Series(dtype=data_type)
+        self.series_types[column_name] = pd.Series(dtype="object")
         self.columns[column_name] = new_column
 
     def add_int_column(
