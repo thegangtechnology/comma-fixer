@@ -22,19 +22,14 @@ class Schema:
     """
     Class containing information on a dataset's columns.
 
-    Stores the column type, functions for checking whether an
-    element can be placed in the column, and whether the column
-    allows commas.
+    Stores a dictionary of Column objects by column name, with
+    each Column object storing information related to what elements
+    can be inserted into that column.
 
     Attributes:
-        types (dict[ColumnName, any]): Dictionary containing the
-        types associated with each column.
-        series_types (dict[ColumnName, any]): Dictionary containing
-        the panda.Series types associated with each column for initialising a DataFrame.
-        is_valid_functions (dict[ColumnName, IsValidFunction]): Dictionary containing
-        functions to determine whether a token can be placed in a column.
-        has_commas (dict[ColumnName, bool]): Dictionary containing
-        booleans on whether a column can contain commas.
+        columns (dict[ColumnName, Column]): Collection of Columns by column name.
+        series_types (dict[ColumnName, type]): Collection of types by column name
+        for initialising DataFrame.
     """
 
     columns: dict[ColumnName, Column]
@@ -111,7 +106,8 @@ class Schema:
         format: Optional[str] = None,
     ):
         """
-        Add a new column to the schema with a specific column type.
+        Create a Column object with a specified column type and add it to the
+        schema.
 
         Additionally creates an `is_valid` function for the column.
 
@@ -156,7 +152,8 @@ class Schema:
         format: Optional[str] = None,
     ):
         """
-        Add a new string type column to the schema.
+        Create a Column object of string column type and add it to the
+        schema.
 
         Additionally creates an `is_valid` function for the column.
 
@@ -197,7 +194,8 @@ class Schema:
         format: Optional[str] = None,
     ):
         """
-        Add a new integer type column to the schema.
+        Create a Column object of integer column type and add it to the
+        schema.
 
         Additionally creates an `is_valid` function for the column.
 
@@ -238,7 +236,8 @@ class Schema:
         format: Optional[str] = None,
     ):
         """
-        Add a new float type column to the schema.
+        Create a Column object of float column type and add it to the
+        schema.
 
         Additionally creates an `is_valid` function for the column.
 
@@ -279,7 +278,8 @@ class Schema:
         format: Optional[str] = None,
     ):
         """
-        Add a new datetime type column to the schema.
+        Create a Column object of datetime column type and add it to the
+        schema.
 
         Additionally creates an `is_valid` function for the column.
 

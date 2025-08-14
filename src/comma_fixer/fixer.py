@@ -51,24 +51,32 @@ class Fixer:
         """
         Processes a new row against the columns in the schema.
 
-        Adds the row into processed DataFrame if valid, otherwise
-        appends it to the list of invalid entries.
+        If the entry contains a valid parsing, returns it, otherwise 
+        returns None.
 
         Args:
             new_entry (str): Row to be processed.
+
+        Returns:
+            Optional[ParsedEntry]. Returns processed entry if valid parsing exists, 
+            and None otherwise.
         """
         return self.__check_valid(new_entry)
 
     def fix_file(self, filepath: str, skip_first_line: bool = True) -> Parsed:
         """
         Processes a CSV file line by line using schema,
-        and separates valid entries from invalid entries.
+        and identifies invalid entries.
 
         After processing, prints out the number of valid entries against invalid entries.
 
         Args:
             filepath (str): Filepath of CSV file to be processed.
             skip_first_line (bool): Whether or not to skip the first line.
+
+        Returns:
+            Parsed. Parsed object which holds processed lines, invalid lines, and 
+            function to export parsed lines to CSV.
         """
         parsed = Parsed.new(schema=self.schema)
         line_count = 0
