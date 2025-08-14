@@ -5,22 +5,20 @@ from comma_fixer.schema import Schema
 
 @pytest.fixture
 def schema():
-    return Schema.new_schema()
+    return Schema.new()
 
 
 def test_new_schema_is_empty(schema):
-    assert schema.types == {}
-    assert schema.is_valid_functions == {}
-    assert schema.has_commas == {}
+    assert schema.columns == {}
+    assert schema.series_types == {}
 
 
 def test_add_column_basic_str(schema):
     schema.add_column(
         "name", str, is_nullable=False, has_commas=False, has_spaces=False
     )
-    assert "name" in schema.types
-    assert schema.types["name"] == str
-    assert not schema.has_commas["name"]
+    assert "name" in schema.columns
+    assert schema.columns["name"].get_type() == str
 
 
 def test_is_token_valid_str_no_commas_or_spaces(schema):
@@ -88,14 +86,7 @@ def test_invalid_column(schema):
 
 
 def test_get_column_names():
-    schema = Schema.new_schema()
+    schema = Schema.new()
     schema.add_str_column("col1", True, False, False)
     schema.add_int_column("col2", True, False, False)
     assert set(schema.get_column_names()) == {"col1", "col2"}
-
-
-def test_schema_str_representation():
-    schema = Schema.new_schema()
-    schema.add_int_column("age", True, False, False)
-    string_repr = str(schema)
-    assert "'age': <class 'int'>" in string_repr

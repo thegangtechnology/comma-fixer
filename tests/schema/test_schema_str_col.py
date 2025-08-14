@@ -5,7 +5,7 @@ from comma_fixer.schema import Schema  # Replace with your actual module name
 
 @pytest.fixture
 def schema() -> Schema:
-    schema = Schema.new_schema()
+    schema = Schema.new()
     schema.add_str_column(
         "str_space_comma", is_nullable=False, has_commas=True, has_spaces=True
     )

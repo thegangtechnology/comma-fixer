@@ -5,7 +5,7 @@ from comma_fixer.schema import Schema  # Replace with your actual module name
 
 @pytest.fixture
 def schema() -> Schema:
-    schema = Schema.new_schema()
+    schema = Schema.new()
     schema.add_int_column("int", is_nullable=False, has_commas=False, has_spaces=False)
     schema.add_float_column(
         "float", is_nullable=False, has_commas=False, has_spaces=False

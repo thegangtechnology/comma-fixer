@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from comma_fixer.fixer import Fixer
@@ -10,7 +9,7 @@ from comma_fixer.schema import Schema
 
 @pytest.fixture
 def mock_schema():
-    schema = Schema.new_schema()
+    schema = Schema.new()
     schema.add_column("col1", str, False, False, False, r"^(?!INVALID$).*$")
     schema.add_column("col2", str, False, False, False, r"^(?!INVALID$).*$")
     schema.add_column("col3", str, False, False, False, r"^(?!INVALID$).*$")
@@ -22,25 +21,17 @@ def fixer(mock_schema):
     return Fixer.new(mock_schema)
 
 
-def test_new_fixer_starts_empty(fixer):
-    assert isinstance(fixer.processed, pd.DataFrame)
-    assert fixer.processed.empty
-    assert fixer.invalid == []
-
-
 def test_add_valid_row(fixer):
     # Patch __check_valid to simulate valid token split
     fixer._Fixer__check_valid = lambda entry: ["A", "B", "C"]
-    fixer.add_row("some,data,row")
-    assert len(fixer.processed) == 1
-    assert fixer.invalid == []
+    res = fixer.process_row("some,data,row")
+    assert res == ["A", "B", "C"]
 
 
 def test_add_invalid_row(fixer):
     fixer._Fixer__check_valid = lambda entry: None
-    fixer.add_row("bad,data")
-    assert len(fixer.processed) == 0
-    assert "bad,data" in fixer.invalid
+    res = fixer.process_row("bad,data")
+    assert res is None
 
 
 def test_construct_processed_entry_from_path(fixer):

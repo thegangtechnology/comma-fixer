@@ -4,9 +4,9 @@ from typing import Optional, TypeAlias
 
 import networkx as nx
 import numpy as np
-import pandas as pd
 from networkx import NetworkXNoPath, NodeNotFound
 
+from comma_fixer.parsed import Parsed
 from comma_fixer.schema import Schema
 
 ParsedEntry: TypeAlias = list[str]
@@ -29,23 +29,14 @@ class Fixer:
     Attributes:
         schema (`Schema`): Schema object defining the columns
         of the dataset.
-        processed (pandas.DataFrame): DataFrame containing processed
-        and valid entries of the dataset.
-        invalid (list[str]): List containing invalid entries that
-        do not fit or contain multiple ways of fitting with schema.
     """
 
     schema: Schema
-    processed: pd.DataFrame
-    invalid: list[str]
 
     @classmethod
     def new(cls, schema: Schema) -> "Fixer":
         """ "
         Create a new Fixer class with a Schema object.
-
-        Initialise a DataFrame with the Schema, and an empty list
-        of invalid entries.
 
         Args:
             schema (`Schema`): Schema defining column name, type, and
@@ -54,49 +45,59 @@ class Fixer:
         Returns:
             Fixer. Fixer object with initialised DataFrame according to Schema.
         """
-        return Fixer(schema, pd.DataFrame(schema.series_types), list())
+        return Fixer(schema)
 
-    def add_row(self, new_entry: str):
+    def process_row(self, new_entry: str) -> Optional[ParsedEntry]:
         """
         Processes a new row against the columns in the schema.
 
-        Adds the row into processed DataFrame if valid, otherwise
-        appends it to the list of invalid entries.
+        If the entry contains a valid parsing, returns it, otherwise
+        returns None.
 
         Args:
             new_entry (str): Row to be processed.
-        """
-        processed_str = self.__check_valid(new_entry)
-        if processed_str is not None:
-            row_to_add = len(self.processed)
-            self.processed.loc[row_to_add] = processed_str
-        else:
-            self.invalid.append(new_entry)
 
-    def fix_file(self, filepath: str, skip_first_line: bool = True):
+        Returns:
+            Optional[ParsedEntry]. Returns processed entry if valid parsing exists,
+            and None otherwise.
+        """
+        return self.__check_valid(new_entry)
+
+    def fix_file(self, filepath: str, skip_first_line: bool = True) -> Parsed:
         """
         Processes a CSV file line by line using schema,
-        and separates valid entries from invalid entries.
+        and identifies invalid entries.
 
         After processing, prints out the number of valid entries against invalid entries.
 
         Args:
             filepath (str): Filepath of CSV file to be processed.
             skip_first_line (bool): Whether or not to skip the first line.
+
+        Returns:
+            Parsed. Parsed object which holds processed lines, invalid lines, and
+            function to export parsed lines to CSV.
         """
+        parsed = Parsed.new(schema=self.schema)
         line_count = 0
         with open(filepath) as file:
             for line in file:
                 line = line.strip()
                 if not skip_first_line:
-                    self.add_row(line)
+                    processed_entry = self.process_row(line)
+                    if processed_entry is not None:
+                        parsed.add_valid_entry(processed_entry)
+                    else:
+                        parsed.add_invalid_entry(line_index=line_count, entry=line)
+                    line_count += 1
                 else:
                     skip_first_line = not skip_first_line
-                line_count += 1
+        total_entries = line_count - 1 if skip_first_line else line_count
         print(
-            f"File has been processed!\nNumber of valid entries: {len(self.processed)}\n \
-            Number of invalid entries: {len(self.invalid)}"
+            f"File has been processed!\nNumber of total entries: {total_entries}\n \
+            Number of invalid entries: {len(parsed.invalid_line_numbers)}"
         )
+        return parsed
 
     def __check_valid(self, new_entry: str) -> Optional[ParsedEntry]:
         """
@@ -198,11 +199,14 @@ class Fixer:
                     )
                     if (
                         token_index > 0
-                        and not self.schema.has_commas[column_name]
+                        and not self.schema.columns[column_name].has_commas()
                         and validity_matrix[token_index - 1][column_index] == 0
                     ):
                         validity_matrix[token_index][column_index] = 1
-                    elif len(token) == 0 and self.schema.has_commas[column_name]:
+                    elif (
+                        len(token) == 0
+                        and self.schema.columns[column_name].has_commas()
+                    ):
                         validity_matrix[token_index][column_index] = 0
                 else:
                     continue
@@ -310,9 +314,3 @@ class Fixer:
         except NodeNotFound:
             logger.warning("Source node (0,0) not found")
             return None
-
-    def export_to_csv(self, filepath: str):
-        """
-        Exports the processed entries into a CSV file.
-        """
-        self.processed.to_csv(path_or_buf=filepath)
