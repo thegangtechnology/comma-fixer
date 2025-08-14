@@ -22,8 +22,8 @@ fixer = Fixer.new(schema)
 fixer.fix_file("filepath")
 ```
 
-After running `fix_file`, valid entries will be placed in a DataFrame, whilst invalid entries 
-will be placed in a list to either be manually processed by the user, or to be processed via 
+After running `fix_file`, valid entries will be placed in a DataFrame, whilst invalid entries
+will be placed in a list to either be manually processed by the user, or to be processed via
 Machine Learning classification.
 
 ```python
