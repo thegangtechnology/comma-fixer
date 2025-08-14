@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Optional, TypeAlias
 
+from comma_fixer.column import Column
 import numpy as np
 import pandas as pd
 
@@ -34,14 +35,11 @@ class Schema:
         has_commas (dict[ColumnName, bool]): Dictionary containing
         booleans on whether a column can contain commas.
     """
-
-    types: dict[ColumnName, any]
-    series_types: dict[ColumnName, any]
-    is_valid_functions: dict[ColumnName, IsValidFunction]
-    has_commas: dict[ColumnName, bool]
+    columns: dict[ColumnName, Column]
+    series_types: dict[ColumnName, type]
 
     @classmethod
-    def new_schema(cls) -> "Schema":
+    def new(cls) -> "Schema":
         """
         Create a new Schema object.
 
@@ -53,7 +51,7 @@ class Schema:
         Returns:
             Empty Schema.
         """
-        return Schema(dict(), dict(), dict(), dict())
+        return Schema(dict(), dict())
 
     def __create_is_valid_function(
         self,
@@ -123,20 +121,21 @@ class Schema:
             has_spaces (bool): Whether elements in column can contain spaces.
             format (Optional[str]): RegEx formatting for text columns (optional).
         """
-        self.types[column_name] = column_type
-        if column_type == np.datetime64:
-            self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
-        else:
-            self.series_types[column_name] = pd.Series(dtype=column_type)
-        self.has_commas[column_name] = has_commas
 
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(
+        is_valid = self.__create_is_valid_function(
             column_type=column_type,
             is_nullable=is_nullable,
             has_commas=has_commas,
             has_spaces=has_spaces,
             format=format,
         )
+
+        new_column = Column.new(name=column_name, data_type=column_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        if column_type == np.datetime64:
+            self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
+        else:
+            self.series_types[column_name] = pd.Series(dtype=column_type)
+        self.columns[column_name] = new_column
 
     def add_str_column(
         self,
@@ -158,17 +157,19 @@ class Schema:
             has_spaces (bool): Whether elements in column can contain spaces.
             format (Optional[str]): RegEx formatting for text columns (optional).
         """
-        self.types[column_name] = str
-        self.series_types[column_name] = pd.Series(dtype=str)
-        self.has_commas[column_name] = has_commas
-
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(
-            column_type=str,
+        data_type = str
+        is_valid = self.__create_is_valid_function(
+            column_type=data_type,
             is_nullable=is_nullable,
             has_commas=has_commas,
             has_spaces=has_spaces,
             format=format,
         )
+
+        new_column = Column.new(name=column_name, data_type=data_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        self.series_types[column_name] = pd.Series(dtype=data_type)
+        self.columns[column_name] = new_column
+
 
     def add_int_column(
         self,
@@ -190,17 +191,18 @@ class Schema:
             has_spaces (bool): Whether elements in column can contain spaces.
             format (Optional[str]): RegEx formatting for text columns (optional).
         """
-        self.types[column_name] = int
-        self.series_types[column_name] = pd.Series(dtype=int)
-        self.has_commas[column_name] = has_commas
-
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(
-            column_type=int,
+        data_type = int
+        is_valid = self.__create_is_valid_function(
+            column_type=data_type,
             is_nullable=is_nullable,
             has_commas=has_commas,
             has_spaces=has_spaces,
             format=format,
         )
+
+        new_column = Column.new(name=column_name, data_type=data_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        self.series_types[column_name] = pd.Series(dtype=data_type)
+        self.columns[column_name] = new_column
 
     def add_float_column(
         self,
@@ -222,17 +224,18 @@ class Schema:
             has_spaces (bool): Whether elements in column can contain spaces.
             format (Optional[str]): RegEx formatting for text columns (optional).
         """
-        self.types[column_name] = float
-        self.series_types[column_name] = pd.Series(dtype=float)
-        self.has_commas[column_name] = has_commas
-
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(
-            column_type=float,
+        data_type = float
+        is_valid = self.__create_is_valid_function(
+            column_type=data_type,
             is_nullable=is_nullable,
             has_commas=has_commas,
             has_spaces=has_spaces,
             format=format,
         )
+
+        new_column = Column.new(name=column_name, data_type=data_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        self.series_types[column_name] = pd.Series(dtype=data_type)
+        self.columns[column_name] = new_column
 
     def add_datetime_column(
         self,
@@ -254,17 +257,19 @@ class Schema:
             has_spaces (bool): Whether elements in column can contain spaces.
             format (Optional[str]): RegEx formatting for text columns (optional).
         """
-        self.types[column_name] = np.datetime64
-        self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
-        self.has_commas[column_name] = has_commas
-
-        self.is_valid_functions[column_name] = self.__create_is_valid_function(
-            column_type=np.datetime64,
+        data_type = np.datetime64
+        is_valid = self.__create_is_valid_function(
+            column_type=data_type,
             is_nullable=is_nullable,
             has_commas=has_commas,
             has_spaces=has_spaces,
             format=format,
         )
+
+        new_column = Column.new(name=column_name, data_type=data_type,is_nullable=is_nullable, has_commas=has_commas,has_spaces=has_spaces, format=format, is_valid=is_valid)
+        self.series_types[column_name] = pd.Series(dtype="datetime64[ns]")
+        self.columns[column_name] = new_column
+
 
     def is_token_valid(self, token: str, column_name: str) -> bool:
         """
@@ -281,7 +286,7 @@ class Schema:
             bool. Returns True if the token can be placed within the
             specified column, False otherwise.
         """
-        return self.is_valid_functions[column_name](token)
+        return self.columns[column_name].is_valid(token)
 
     def get_column_names(self) -> list[str]:
         """
@@ -290,7 +295,16 @@ class Schema:
         Returns:
             List[str]. List containing the name of the columns in the schema.
         """
-        return list(self.types.keys())
+        return list(self.columns.keys())
 
     def __str__(self) -> str:
         return f"{self.types}"
+    
+    def schema_info(self):
+        """
+        Prints out information about the current schema.
+        """
+        schema_df = pd.DataFrame(columns=["name", "type", "nullable", "has commas", "has spaces", "format"])
+        for column_name, column in list(self.columns.items()):
+            schema_df.loc[len(schema_df)] = [column_name, column.get_type().__name__,column.is_nullable(),column.has_commas(),column.has_spaces(),column.get_format()]
+        return schema_df.style
