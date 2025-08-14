@@ -22,25 +22,17 @@ def fixer(mock_schema):
     return Fixer.new(mock_schema)
 
 
-def test_new_fixer_starts_empty(fixer):
-    assert isinstance(fixer.processed, pd.DataFrame)
-    assert fixer.processed.empty
-    assert fixer.invalid == []
-
-
 def test_add_valid_row(fixer):
     # Patch __check_valid to simulate valid token split
     fixer._Fixer__check_valid = lambda entry: ["A", "B", "C"]
-    fixer.add_row("some,data,row")
-    assert len(fixer.processed) == 1
-    assert fixer.invalid == []
+    res = fixer.process_row("some,data,row")
+    assert res == ["A", "B", "C"]
 
 
 def test_add_invalid_row(fixer):
     fixer._Fixer__check_valid = lambda entry: None
-    fixer.add_row("bad,data")
-    assert len(fixer.processed) == 0
-    assert "bad,data" in fixer.invalid
+    res = fixer.process_row("bad,data")
+    assert res == None
 
 
 def test_construct_processed_entry_from_path(fixer):
