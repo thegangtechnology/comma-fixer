@@ -88,7 +88,6 @@ class Parsed:
         for line_number, line in enumerate(self.processed.split("\n")):
             if (line_number, line) not in self.invalid_line_numbers:
                 parsed_csv = list(csv.reader([line]))[0]
-                print(parsed_csv)
                 processed_to_csv.loc[len(processed_to_csv)] = parsed_csv
         return processed_to_csv.to_csv(filepath, index=False)
 
