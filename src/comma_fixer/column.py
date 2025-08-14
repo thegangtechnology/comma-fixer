@@ -10,7 +10,7 @@ IsValidFunction: TypeAlias = Callable[[str], bool]
 @dataclass
 class Column:
     """
-    Column class which contains information about a column's types and 
+    Column class which contains information about a column's types and
     what elements can be inserted into the column.
 
     Attributes:
@@ -22,6 +22,7 @@ class Column:
         _format (Optional[str]): RegEx formatting for elements in column if needed.
         _is_valid (IsValidFunction): Function used to check if an element can be placed in column.
     """
+
     _name: str
     _data_type: type
     _nullable: bool

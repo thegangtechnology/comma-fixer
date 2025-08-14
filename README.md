@@ -7,7 +7,7 @@ Create a Schema to define each column's name, type, and what can be inserted int
 String, integer, float, and datetime type columns can be added to the schema.
 
 ```python
-schema = Schema.new_schema()
+schema = Schema.new()
 schema.add_str_column("string_column")
 schema.add_int_column("integer_column")
 ```
@@ -19,15 +19,16 @@ Create a Fixer to process a CSV file and separate valid entries from invalid ent
 
 ```python
 fixer = Fixer.new(schema)
-fixer.fix_file("filepath")
+parsed = fixer.fix_file("filepath")
 ```
 
-After running `fix_file`, valid entries will be placed in a DataFrame, whilst invalid entries
-will be placed in a list to either be manually processed by the user, or to be processed via
-Machine Learning classification.
+`fix_file(filepath)` returns a `Parsed` object, which stores all entries from the original CSV file. Valid, processed entries will
+contain quotes on elements containing commas.
+
+Exporting to CSV will only include valid entries, without invalid entries. However, invalid entries can be viewed by calling
+`print_invalid_entries()`, which will display their line index respective to the original CSV file that has been read from.
 
 ```python
-fixer.export_to_csv("processed_filepath")
+parsed.export_to_csv_best_effort("processed_filepath")
+parsed.print_invalid_entries()
 ```
-
-Calling `export_to_csv` will export the items in the processed DataFrame to a CSV file.

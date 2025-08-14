@@ -20,6 +20,7 @@ class Parsed:
         processed (str): CSV of dataset stored as a string.
         invalid_line_numbers (list[InvalidEntry]): List of invalid entries containing line number and entry.
     """
+
     schema: Schema
     processed: str
     invalid_line_numbers: list[InvalidEntry]
@@ -39,7 +40,7 @@ class Parsed:
 
     def add_valid_entry(self, entry: ParsedEntry):
         """
-        Adds a valid entry to the string representation of the CSV with 
+        Adds a valid entry to the string representation of the CSV with
         quotes around elements containing commas.
 
         Args:
@@ -64,7 +65,7 @@ class Parsed:
 
     def add_invalid_entry(self, line_index: int, entry: str):
         """
-        Adds invalid entries to string representation of the CSV, 
+        Adds invalid entries to string representation of the CSV,
         and the list of invalid entries.
 
         Args:
@@ -93,7 +94,7 @@ class Parsed:
 
     def print_all_invalid_entries(self):
         """
-        Prints all the invalid entries with their line index respective to 
+        Prints all the invalid entries with their line index respective to
         the original CSV file.
         """
         print(self.invalid_line_numbers)
