@@ -5,7 +5,7 @@ from comma_fixer.schema import Schema  # Replace with your actual module name
 
 @pytest.fixture
 def schema() -> Schema:
-    schema = Schema.new_schema()
+    schema = Schema.new()
     schema.add_datetime_column(
         "datetime", is_nullable=False, has_commas=False, has_spaces=False
     )

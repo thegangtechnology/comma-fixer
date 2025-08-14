@@ -5,7 +5,7 @@ from comma_fixer.schema import Schema
 
 @pytest.fixture
 def schema():
-    return Schema.new_schema()
+    return Schema.new()
 
 
 def test_new_schema_is_empty(schema):
@@ -86,8 +86,7 @@ def test_invalid_column(schema):
 
 
 def test_get_column_names():
-    schema = Schema.new_schema()
+    schema = Schema.new()
     schema.add_str_column("col1", True, False, False)
     schema.add_int_column("col2", True, False, False)
     assert set(schema.get_column_names()) == {"col1", "col2"}
-    

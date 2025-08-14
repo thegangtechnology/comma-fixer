@@ -10,7 +10,7 @@ from comma_fixer.schema import Schema
 
 @pytest.fixture
 def mock_schema():
-    schema = Schema.new_schema()
+    schema = Schema.new()
     schema.add_column("col1", str, False, False, False, r"^(?!INVALID$).*$")
     schema.add_column("col2", str, False, False, False, r"^(?!INVALID$).*$")
     schema.add_column("col3", str, False, False, False, r"^(?!INVALID$).*$")
