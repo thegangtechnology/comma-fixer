@@ -50,9 +50,9 @@ class Parsed:
         for token in entry:
             if "," in token:
                 if len(processed_entry) != 0:
-                    processed_entry = f"{processed_entry},\"{token}\""
+                    processed_entry = f'{processed_entry},"{token}"'
                 else:
-                    processed_entry = f"\"{token}\""
+                    processed_entry = f'"{token}"'
             else:
                 if len(processed_entry) != 0:
                     processed_entry = f"{processed_entry},{token}"

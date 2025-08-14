@@ -94,7 +94,8 @@ class Fixer:
                     skip_first_line = not skip_first_line
         total_entries = line_count - 1 if skip_first_line else line_count
         print(
-            f"File has been processed!\nNumber of total entries: {total_entries}\nNumber of invalid entries: {len(parsed.invalid_line_numbers)}"
+            f"File has been processed!\nNumber of total entries: {total_entries}\
+            \n Number of invalid entries: {len(parsed.invalid_line_numbers)}"
         )
         return parsed
 
@@ -154,16 +155,16 @@ class Fixer:
         previous_col = -1
         for step in path:
             if step[0] < num_tokens and step[1] < num_cols:
-                ## Check if the previous column is the same
                 if step[1] != previous_col:
                     processed_entry[step[1]] = tokens[step[0]].strip()
                     previous_col = step[1]
                 else:
                     if len(processed_entry[step[1]]) == 0:
-                        ## Nothing in the processed entry (maybe first item in list is null on accident)
                         processed_entry[step[1]] = tokens[step[0]].strip()
                     elif len(tokens[step[0]]) != 0:
-                        processed_entry[step[1]] = f"{processed_entry[step[1]]},{tokens[step[0]].strip()}"
+                        processed_entry[step[1]] = (
+                            f"{processed_entry[step[1]]},{tokens[step[0]].strip()}"
+                        )
         return processed_entry
 
     def __construct_validity_matrix(self, new_entry: str) -> ValidityMatrix:
