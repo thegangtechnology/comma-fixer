@@ -87,8 +87,8 @@ class Fixer:
                 else:
                     skip_first_line = not skip_first_line
         print(
-            f"File has been processed!\nNumber of valid entries: {len(self.processed)}\n \
-            Number of invalid entries: {len(self.invalid)}"
+            f"File has been processed!\nNumber of total entries: {len(parsed.processed)}\n \
+            Number of invalid entries: {len(parsed.invalid_line_numbers)}"
         )
         return parsed
 
