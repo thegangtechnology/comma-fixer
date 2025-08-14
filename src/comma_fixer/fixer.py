@@ -152,10 +152,18 @@ class Fixer:
             according to the schema.
         """
         processed_entry = ["" for _ in range(num_cols)]
+        column_names = self.schema.get_column_names()
         previous_col = -1
         for step in path:
             if step[0] < num_tokens and step[1] < num_cols:
                 if step[1] != previous_col:
+                    if (previous_col > 0
+                        and
+                        len(processed_entry[previous_col]) == 0 
+                        and 
+                        not self.schema.columns[column_names[previous_col]].is_nullable()):
+                        logger.warning("Failed - Parsed null element into non-null column.")
+                        return None
                     processed_entry[step[1]] = tokens[step[0]].strip()
                     previous_col = step[1]
                 else:

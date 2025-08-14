@@ -96,4 +96,6 @@ class Parsed:
         Prints all the invalid entries with their line index respective to
         the original CSV file.
         """
-        print(self.invalid_line_numbers)
+        print(f"Index\tLine entry")
+        for invalid_index, invalid_line in self.invalid_line_numbers:
+            print(f"{invalid_index}\t{invalid_line}")
