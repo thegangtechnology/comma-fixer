@@ -1,6 +1,15 @@
 # comma-fixer
 Python Library for fixing malformed csv files due to excessive commas
 
+# Quickstart
+
+The library can be imported like so:
+
+```python
+from comma_fixer.schema import Schema
+from comma_fixer.fixer import Fixer
+```
+
 # Schema
 Create a Schema to define each column's name, type, and what can be inserted into that column (i.e. whether it contains commas, spaces, etc.).
 
