@@ -61,7 +61,7 @@ class Fixer:
             Optional[ParsedEntry]. Returns processed entry if valid parsing exists,
             and None otherwise.
         """
-        return self.__check_valid(new_entry)
+        return self.__check_valid(new_entry.strip())
 
     def fix_file(self, filepath: str, skip_first_line: bool = True) -> Parsed:
         """
@@ -158,7 +158,7 @@ class Fixer:
             if step[0] < num_tokens and step[1] < num_cols:
                 if step[1] != previous_col:
                     if (
-                        previous_col > 0
+                        previous_col >= 0
                         and len(processed_entry[previous_col]) == 0
                         and not self.schema.columns[
                             column_names[previous_col]
@@ -219,25 +219,37 @@ class Fixer:
                         )
                         else 1
                     )
+                    logger.warning(f"[{token_index}][{column_index}] set to {validity_matrix[token_index][column_index]}")
                     if (
                         token_index > 0
                         and not self.schema.columns[column_name].has_commas()
                         and validity_matrix[token_index - 1][column_index] == 0
                     ):
                         validity_matrix[token_index][column_index] = 1
+                        logger.warning(f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}")
                     elif (
                         len(token) == 0
                         and self.schema.columns[column_name].has_commas()
                     ):
                         validity_matrix[token_index][column_index] = 0
+                        logger.warning(f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}")
                 else:
+                    logger.warning(f"[{token_index}][{column_index}] not set")
                     continue
                 if (
                     validity_matrix[token_index][column_index] == 0
                     and first_valid_index == -1
+                    and token_index == 0
+                ):
+                    first_valid_index = column_index
+                    break
+                elif (
+                    validity_matrix[token_index][column_index] == 0
+                    and column_index > first_valid_index
                 ):
                     first_valid_index = column_index
                 if token_index != 0 and column_index > furthest_col:
+                    logger.warning(f"Break at {column_index}")
                     break
             furthest_col = (
                 first_valid_index
