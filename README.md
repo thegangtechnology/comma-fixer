@@ -14,7 +14,7 @@ from comma_fixer.fixer import Fixer
 # Schema
 Create a Schema to define each column's name, type, and what can be inserted into that column (i.e. whether it contains commas, spaces, etc.).
 
-String, integer, float, and datetime type columns can be added to the schema. Each column will automatically generate a function to 
+String, integer, float, and datetime type columns can be added to the schema. Each column will automatically generate a function to
 check whether a token fits within a column.
 
 ```python
@@ -28,15 +28,15 @@ schema = Schema.new(columns=[
 schema.info()
 ```
 
-Custom columns that are not of the type {string, integer, float, datetime} can also be created, but a pandas.Series must also be given 
-as part of the arguments. This is to ensure that a pandas.Series object can be created from the specified type, and will allow a 
+Custom columns that are not of the type {string, integer, float, datetime} can also be created, but a pandas.Series must also be given
+as part of the arguments. This is to ensure that a pandas.Series object can be created from the specified type, and will allow a
 DataFrame to be initialised from the Schema object when exporting to a CSV file.
 
 ```python
 Column.new(name="has_car", data_type=bool, series_type=pd.Series(dtype=bool), is_nullable=False, has_commas=False, has_spaces=False)
 ```
 
-Once a schema is created, it can no longer be added to or editted. Schemas can be viewed with `.info()`, which will display 
+Once a schema is created, it can no longer be added to or editted. Schemas can be viewed with `.info()`, which will display
 each column's attributes.
 
 # Fixer
