@@ -94,7 +94,7 @@ class Schema:
     def __str__(self) -> str:
         return f"{self.types}"
 
-    def schema_info(self):
+    def info(self):
         """
         Prints out information about the current schema.
         """
