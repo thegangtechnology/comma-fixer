@@ -219,20 +219,26 @@ class Fixer:
                         )
                         else 1
                     )
-                    logger.warning(f"[{token_index}][{column_index}] set to {validity_matrix[token_index][column_index]}")
+                    logger.warning(
+                        f"[{token_index}][{column_index}] set to {validity_matrix[token_index][column_index]}"
+                    )
                     if (
                         token_index > 0
                         and not self.schema.columns[column_name].has_commas()
                         and validity_matrix[token_index - 1][column_index] == 0
                     ):
                         validity_matrix[token_index][column_index] = 1
-                        logger.warning(f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}")
+                        logger.warning(
+                            f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
+                        )
                     elif (
                         len(token) == 0
                         and self.schema.columns[column_name].has_commas()
                     ):
                         validity_matrix[token_index][column_index] = 0
-                        logger.warning(f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}")
+                        logger.warning(
+                            f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
+                        )
                 else:
                     logger.warning(f"[{token_index}][{column_index}] not set")
                     continue
