@@ -11,11 +11,37 @@ from comma_fixer.schema import Schema
 
 @pytest.fixture
 def mock_schema():
-    schema = Schema.new(columns=[
-        Column.new("col1", str, pd.Series(dtype=object), False, False, False, r"^(?!INVALID$).*$"),
-        Column.new("col2", str, pd.Series(dtype=object), False, False, False, r"^(?!INVALID$).*$"),
-        Column.new("col3", str, pd.Series(dtype=object), False, False, False, r"^(?!INVALID$).*$"),
-    ])
+    schema = Schema.new(
+        columns=[
+            Column.new(
+                "col1",
+                str,
+                pd.Series(dtype=object),
+                False,
+                False,
+                False,
+                r"^(?!INVALID$).*$",
+            ),
+            Column.new(
+                "col2",
+                str,
+                pd.Series(dtype=object),
+                False,
+                False,
+                False,
+                r"^(?!INVALID$).*$",
+            ),
+            Column.new(
+                "col3",
+                str,
+                pd.Series(dtype=object),
+                False,
+                False,
+                False,
+                r"^(?!INVALID$).*$",
+            ),
+        ]
+    )
     return schema
 
 
