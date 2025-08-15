@@ -37,8 +37,8 @@ def test_two_non_consecutive_comma_columns():
 def test_two_consecutive_comma_columns_with_regex():
     schema = Schema.new(
         columns=[
-            Column.string("cat_names", False, True, False,format=r"[a-z]+,?"),
-            Column.string("cat_ages", False, True, False,format=r"[0-9]+,?"),
+            Column.string("cat_names", False, True, False, format=r"[a-z]+,?"),
+            Column.string("cat_ages", False, True, False, format=r"[0-9]+,?"),
         ]
     )
     fixer = Fixer.new(schema=schema)
