@@ -114,13 +114,13 @@ class Column:
 
         # In the case of strings, use Object for pandas.Series type
         return Column.new(
-            _name=name,
-            _data_type=data_type,
-            _series_type=series_type,
-            _nullable=is_nullable,
-            _has_commas=has_commas,
-            _has_spaces=has_spaces,
-            _format=format,
+            name=name,
+            data_type=data_type,
+            series_type=series_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
         )
 
     @classmethod
@@ -151,13 +151,13 @@ class Column:
 
         # In the case of strings, use Object for pandas.Series type
         return Column.new(
-            _name=name,
-            _data_type=data_type,
-            _series_type=series_type,
-            _nullable=is_nullable,
-            _has_commas=has_commas,
-            _has_spaces=has_spaces,
-            _format=format,
+            name=name,
+            data_type=data_type,
+            series_type=series_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
         )
 
     @classmethod
@@ -188,13 +188,13 @@ class Column:
 
         # In the case of strings, use Object for pandas.Series type
         return Column.new(
-            _name=name,
-            _data_type=data_type,
-            _series_type=series_type,
-            _nullable=is_nullable,
-            _has_commas=has_commas,
-            _has_spaces=has_spaces,
-            _format=format,
+            name=name,
+            data_type=data_type,
+            series_type=series_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
         )
 
     @classmethod
@@ -225,13 +225,13 @@ class Column:
 
         # In the case of strings, use Object for pandas.Series type
         return Column.new(
-            _name=name,
-            _data_type=data_type,
-            _series_type=series_type,
-            _nullable=is_nullable,
-            _has_commas=has_commas,
-            _has_spaces=has_spaces,
-            _format=format,
+            name=name,
+            data_type=data_type,
+            series_type=series_type,
+            is_nullable=is_nullable,
+            has_commas=has_commas,
+            has_spaces=has_spaces,
+            format=format,
         )
 
     @classmethod
