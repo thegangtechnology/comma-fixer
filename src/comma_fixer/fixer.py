@@ -61,7 +61,7 @@ class Fixer:
             Optional[ParsedEntry]. Returns processed entry if valid parsing exists,
             and None otherwise.
         """
-        return self.__check_valid(new_entry)
+        return self.__check_valid(new_entry.strip())
 
     def fix_file(self, filepath: str, skip_first_line: bool = True) -> Parsed:
         """
@@ -152,10 +152,22 @@ class Fixer:
             according to the schema.
         """
         processed_entry = ["" for _ in range(num_cols)]
+        column_names = self.schema.get_column_names()
         previous_col = -1
         for step in path:
             if step[0] < num_tokens and step[1] < num_cols:
                 if step[1] != previous_col:
+                    if (
+                        previous_col >= 0
+                        and len(processed_entry[previous_col]) == 0
+                        and not self.schema.columns[
+                            column_names[previous_col]
+                        ].is_nullable()
+                    ):
+                        logger.warning(
+                            "Failed - Parsed null element into non-null column."
+                        )
+                        return None
                     processed_entry[step[1]] = tokens[step[0]].strip()
                     previous_col = step[1]
                 else:
@@ -207,25 +219,43 @@ class Fixer:
                         )
                         else 1
                     )
+                    logger.warning(
+                        f"[{token_index}][{column_index}] set to {validity_matrix[token_index][column_index]}"
+                    )
                     if (
                         token_index > 0
                         and not self.schema.columns[column_name].has_commas()
                         and validity_matrix[token_index - 1][column_index] == 0
                     ):
                         validity_matrix[token_index][column_index] = 1
+                        logger.warning(
+                            f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
+                        )
                     elif (
                         len(token) == 0
                         and self.schema.columns[column_name].has_commas()
                     ):
                         validity_matrix[token_index][column_index] = 0
+                        logger.warning(
+                            f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
+                        )
                 else:
+                    logger.warning(f"[{token_index}][{column_index}] not set")
                     continue
                 if (
                     validity_matrix[token_index][column_index] == 0
                     and first_valid_index == -1
+                    and token_index == 0
+                ):
+                    first_valid_index = column_index
+                    break
+                elif (
+                    validity_matrix[token_index][column_index] == 0
+                    and column_index > first_valid_index
                 ):
                     first_valid_index = column_index
                 if token_index != 0 and column_index > furthest_col:
+                    logger.warning(f"Break at {column_index}")
                     break
             furthest_col = (
                 first_valid_index

@@ -1,14 +1,20 @@
 import pytest
 
-from comma_fixer.schema import Schema  # Replace with your actual module name
+from comma_fixer.column import Column
+from comma_fixer.schema import Schema
 
 
 @pytest.fixture
 def schema() -> Schema:
-    schema = Schema.new()
-    schema.add_int_column("int", is_nullable=False, has_commas=False, has_spaces=False)
-    schema.add_float_column(
-        "float", is_nullable=False, has_commas=False, has_spaces=False
+    schema = Schema.new(
+        columns=[
+            Column.numeric(
+                "int", is_nullable=False, has_commas=False, has_spaces=False
+            ),
+            Column.float(
+                "float", is_nullable=False, has_commas=False, has_spaces=False
+            ),
+        ]
     )
     return schema
 

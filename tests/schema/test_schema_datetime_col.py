@@ -1,13 +1,17 @@
 import pytest
 
-from comma_fixer.schema import Schema  # Replace with your actual module name
+from comma_fixer.column import Column
+from comma_fixer.schema import Schema
 
 
 @pytest.fixture
 def schema() -> Schema:
-    schema = Schema.new()
-    schema.add_datetime_column(
-        "datetime", is_nullable=False, has_commas=False, has_spaces=False
+    schema = Schema.new(
+        columns=[
+            Column.datetime(
+                "datetime", is_nullable=False, has_commas=False, has_spaces=False
+            )
+        ]
     )
     return schema
 

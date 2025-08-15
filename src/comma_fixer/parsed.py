@@ -84,7 +84,7 @@ class Parsed:
 
         Converts valid entries into DataFrame before exporting to CSV.
         """
-        processed_to_csv = pd.DataFrame(self.schema.series_types)
+        processed_to_csv = pd.DataFrame(self.schema.get_series_dict())
         for line_number, line in enumerate(self.processed.split("\n")):
             if (line_number, line) not in self.invalid_line_numbers:
                 parsed_csv = list(csv.reader([line]))[0]
@@ -96,4 +96,6 @@ class Parsed:
         Prints all the invalid entries with their line index respective to
         the original CSV file.
         """
-        print(self.invalid_line_numbers)
+        print("Index\tLine entry")
+        for invalid_index, invalid_line in self.invalid_line_numbers:
+            print(f"{invalid_index}\t{invalid_line}")

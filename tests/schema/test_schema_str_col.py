@@ -1,25 +1,36 @@
 import pytest
 
-from comma_fixer.schema import Schema  # Replace with your actual module name
+from comma_fixer.column import Column
+from comma_fixer.schema import Schema
 
 
 @pytest.fixture
 def schema() -> Schema:
-    schema = Schema.new()
-    schema.add_str_column(
-        "str_space_comma", is_nullable=False, has_commas=True, has_spaces=True
-    )
-    schema.add_str_column(
-        "str_space", is_nullable=False, has_commas=False, has_spaces=True
-    )
-    schema.add_str_column(
-        "str_comma", is_nullable=False, has_commas=True, has_spaces=False
-    )
-    schema.add_str_column(
-        "str_no_space_no_comma", is_nullable=False, has_commas=False, has_spaces=False
-    )
-    schema.add_str_column(
-        "str_null_space_comma", is_nullable=True, has_commas=True, has_spaces=True
+
+    schema = Schema.new(
+        columns=[
+            Column.string(
+                "str_space_comma", is_nullable=False, has_commas=True, has_spaces=True
+            ),
+            Column.string(
+                "str_space", is_nullable=False, has_commas=False, has_spaces=True
+            ),
+            Column.string(
+                "str_comma", is_nullable=False, has_commas=True, has_spaces=False
+            ),
+            Column.string(
+                "str_no_space_no_comma",
+                is_nullable=False,
+                has_commas=False,
+                has_spaces=False,
+            ),
+            Column.string(
+                "str_null_space_comma",
+                is_nullable=True,
+                has_commas=True,
+                has_spaces=True,
+            ),
+        ]
     )
     return schema
 
