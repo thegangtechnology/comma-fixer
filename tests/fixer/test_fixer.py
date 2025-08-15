@@ -1,18 +1,21 @@
 from unittest.mock import MagicMock
 
 import numpy as np
+import pandas as pd
 import pytest
 
+from comma_fixer.column import Column
 from comma_fixer.fixer import Fixer
 from comma_fixer.schema import Schema
 
 
 @pytest.fixture
 def mock_schema():
-    schema = Schema.new()
-    schema.add_column("col1", str, False, False, False, r"^(?!INVALID$).*$")
-    schema.add_column("col2", str, False, False, False, r"^(?!INVALID$).*$")
-    schema.add_column("col3", str, False, False, False, r"^(?!INVALID$).*$")
+    schema = Schema.new(columns=[
+        Column.new("col1", str, pd.Series(dtype=object), False, False, False, r"^(?!INVALID$).*$"),
+        Column.new("col2", str, pd.Series(dtype=object), False, False, False, r"^(?!INVALID$).*$"),
+        Column.new("col3", str, pd.Series(dtype=object), False, False, False, r"^(?!INVALID$).*$"),
+    ])
     return schema
 
 

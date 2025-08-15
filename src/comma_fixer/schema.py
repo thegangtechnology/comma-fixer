@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from typing import Callable, Optional, TypeAlias
+from typing import Callable, TypeAlias
 
-import numpy as np
 import pandas as pd
 
 from comma_fixer.column import Column
