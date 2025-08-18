@@ -47,7 +47,7 @@ class Fixer:
         """
         return Fixer(schema)
 
-    def process_row(self, new_entry: str) -> Optional[ParsedEntry]:
+    def process_row(self, new_entry: str, show_possible_parses: bool = False) -> Optional[ParsedEntry]:
         """
         Processes a new row against the columns in the schema.
 
@@ -61,7 +61,10 @@ class Fixer:
             Optional[ParsedEntry]. Returns processed entry if valid parsing exists,
             and None otherwise.
         """
-        return self.__check_valid(new_entry.strip())
+        parsed_entry = self.__check_valid(new_entry.strip())
+        if parsed_entry is None and show_possible_parses:
+            self.all_possible_processed_strings(new_entry=new_entry)
+        return parsed_entry
 
     def all_possible_processed_strings(self, new_entry: str) -> list[ParsedEntry]:
         """
@@ -123,13 +126,11 @@ class Fixer:
             for line in file:
                 line = line.strip()
                 if not skip_first_line:
-                    processed_entry = self.process_row(line)
+                    processed_entry = self.process_row(line, show_possible_parses)
                     if processed_entry is not None:
                         parsed.add_valid_entry(processed_entry)
                     else:
                         parsed.add_invalid_entry(line_index=line_count, entry=line)
-                        if show_possible_parses:
-                            self.all_possible_processed_strings(new_entry=line)
                     line_count += 1
                 else:
                     skip_first_line = not skip_first_line
