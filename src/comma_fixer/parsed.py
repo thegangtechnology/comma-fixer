@@ -42,46 +42,6 @@ class Parsed:
             _schema=schema, _processed=processed_csv, _invalid_entries=invalid_entries
         )
 
-    def add_valid_entry(self, entry: ParsedEntry):
-        """
-        Adds a valid entry to the string representation of the CSV with
-        quotes around elements containing commas.
-
-        Args:
-            entry (ParsedEntry): List of tokens to be added.
-        """
-        processed_entry = ""
-        for token in entry:
-            if "," in token:
-                if len(processed_entry) != 0:
-                    processed_entry = f'{processed_entry},"{token}"'
-                else:
-                    processed_entry = f'"{token}"'
-            else:
-                if len(processed_entry) != 0:
-                    processed_entry = f"{processed_entry},{token}"
-                else:
-                    processed_entry = f"{token}"
-        if len(self._processed) != 0:
-            self._processed = f"{self._processed}\n{processed_entry}"
-        else:
-            self._processed = processed_entry
-
-    def add_invalid_entry(self, line_index: int, entry: str):
-        """
-        Adds invalid entries to string representation of the CSV,
-        and the list of invalid entries.
-
-        Args:
-            line_index (int): Index of invalid entry in original CSV file.
-            entry (str): String of invalid entry.
-        """
-        self._invalid_entries.append(tuple([line_index, entry]))
-        if len(self._processed) != 0:
-            self._processed = f"{self._processed}\n{entry}"
-        else:
-            self._processed = entry
-
     def export_to_csv_best_effort(self, filepath: str):
         """
         Exports valid entries to CSV at specified filepath.
