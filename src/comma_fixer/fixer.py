@@ -49,7 +49,10 @@ class Fixer:
         return Fixer(schema)
 
     def process_row(
-        self, new_entry: str, show_possible_parses: bool = False
+        self,
+        new_entry: str,
+        show_possible_parses: bool = False,
+        line_index: Optional[int] = None,
     ) -> Optional[ParsedEntry]:
         """
         Processes a new row against the columns in the schema.
@@ -59,22 +62,29 @@ class Fixer:
 
         Args:
             new_entry (str): Row to be processed.
+            show_possible_parses (bool): Print out possible parses for invalid lines
+            line_number (Optional[int]): Index of line being processed.
 
         Returns:
             Optional[ParsedEntry]. Returns processed entry if valid parsing exists,
             and None otherwise.
         """
-        parsed_entry = self.__check_valid(new_entry.strip())
+        parsed_entry = self.__check_valid(new_entry.strip(), line_index=line_index)
         if parsed_entry is None and show_possible_parses:
-            self.all_possible_processed_strings(new_entry=new_entry)
+            self.__all_possible_processed_strings(
+                new_entry=new_entry, line_index=line_index
+            )
         return parsed_entry
 
-    def all_possible_processed_strings(self, new_entry: str) -> list[ParsedEntry]:
+    def __all_possible_processed_strings(
+        self, new_entry: str, line_index: Optional[int] = None
+    ) -> list[ParsedEntry]:
         """
         Processes a new row and returns all possible parsing as a list.
 
         Args:
             new_entry (str): Row to be processed.
+            line_index (Optional[int]): Index of line being processed.
 
         Returns:
             list[ParsedEntry]. Returns list of all possible parses that would
@@ -92,7 +102,14 @@ class Fixer:
                     path=path, tokens=tokens, num_cols=num_cols, num_tokens=num_tokens
                 )
                 if processed_path is None:
-                    logger.warning("Path failed - null entry in non-nullable column.")
+                    if line_index is not None:
+                        logger.warning(
+                            f"Path failed at line index {line_index} - null entry in non-nullable column."
+                        )
+                    else:
+                        logger.warning(
+                            "Path failed - null entry in non-nullable column."
+                        )
                 else:
                     print(processed_path)
                     processed_paths.append(processed_path)
@@ -132,7 +149,9 @@ class Fixer:
                 line = line.strip()
                 if not skip_first_line:
                     processed_entry = self.process_row(
-                        new_entry=line, show_possible_parses=show_possible_parses
+                        new_entry=line,
+                        show_possible_parses=show_possible_parses,
+                        line_index=line_count,
                     )
                     if processed_entry is not None:
                         processed_csv = self._add_valid_entry(
@@ -168,7 +187,11 @@ class Fixer:
         quotes around elements containing commas.
 
         Args:
+            processed (str): String representation of CSV of processed items.
             entry (ParsedEntry): List of tokens to be added.
+
+        Returns:
+            str. Returns string representation of CSV with new entry appended.
         """
         processed_entry = ""
         for token in entry:
@@ -199,8 +222,13 @@ class Fixer:
         and the list of invalid entries.
 
         Args:
+            invalid_entries (list[InvalidEntry]): List of invalid entries with their line index.
+            processed (str): String representation of CSV of processed items.
             line_index (int): Index of invalid entry in original CSV file.
             entry (str): String of invalid entry.
+
+        Returns:
+            str. Returns processed string representation of CSV with new entry appended.
         """
         invalid_entries.append(tuple([line_index, entry]))
         if len(processed) != 0:
@@ -208,7 +236,9 @@ class Fixer:
         else:
             return entry
 
-    def __check_valid(self, new_entry: str) -> Optional[ParsedEntry]:
+    def __check_valid(
+        self, new_entry: str, line_index: Optional[int] = None
+    ) -> Optional[ParsedEntry]:
         """
         Checks whether a row is valid and returns the parsed entry if valid.
 
@@ -218,6 +248,7 @@ class Fixer:
 
         Args:
             new_entry (str): Row to be processed.
+            line_number (Optional[int]): Index of line being processed.
 
         Returns:
             Optional[ParsedEntry]: List of parsed tokens if the row is valid.
@@ -225,16 +256,28 @@ class Fixer:
         validity_matrix = self.__construct_validity_matrix(new_entry=new_entry)
         tokens = new_entry.split(",")
         (num_tokens, num_cols) = validity_matrix.shape
-        paths = self.__find_shortest_paths(validity_matrix=validity_matrix)
+        paths = self.__find_shortest_paths(
+            validity_matrix=validity_matrix, line_index=line_index
+        )
 
         if paths is not None and len(paths) > 1:
-            logger.warning("Multiple paths found -- needs to be resolved")
+            if line_index is not None:
+                logger.warning(
+                    f"Multiple paths found at line index {line_index} - needs to be resolved."
+                )
+            else:
+                logger.warning("Multiple paths found -- needs to be resolved")
             return None
         elif paths is not None:
             for path in paths:
                 return self.__construct_processed_entry_from_path(
-                    path=path, tokens=tokens, num_cols=num_cols, num_tokens=num_tokens
+                    path=path,
+                    tokens=tokens,
+                    num_cols=num_cols,
+                    num_tokens=num_tokens,
+                    line_index=line_index,
                 )
+        # Warning log should already been written from __find_shortest_paths
         return None
 
     def __construct_processed_entry_from_path(
@@ -243,6 +286,7 @@ class Fixer:
         tokens: list[str],
         num_cols: int,
         num_tokens: int,
+        line_index: Optional[int] = None,
     ) -> ParsedEntry:
         """
         Constructs a ParsedEntry from a valid path and given tokens.
@@ -255,6 +299,7 @@ class Fixer:
             num_cols (int): Number of columns in schema.
             num_tokens (int): Number of tokens after splitting entry
             string by the delimiter.
+            line_number (Optional[int]): Index of line being processed.
 
         Returns:
             ParsedEntry. List of tokens parsed such that the entry is valid
@@ -273,9 +318,14 @@ class Fixer:
                             column_names[previous_col]
                         ].is_nullable()
                     ):
-                        logger.warning(
-                            "Failed - Parsed null element into non-null column."
-                        )
+                        if line_index is not None:
+                            logger.warning(
+                                f"Failed at line index {line_index} - Parsed null element into non-null column."
+                            )
+                        else:
+                            logger.warning(
+                                "Failed - Parsed null element into non-null column."
+                            )
                         return None
                     processed_entry[step[1]] = tokens[step[0]].strip()
                     previous_col = step[1]
@@ -311,6 +361,8 @@ class Fixer:
         num_tokens = len(tokens)
         validity_matrix = np.ones((num_tokens, num_cols))
         furthest_col = 0
+
+        logger.info(f"Creating validity matrix for line '{new_entry}'")
 
         for token_index, token in enumerate(tokens):
             first_valid_index = -1
@@ -408,7 +460,7 @@ class Fixer:
         return False
 
     def __find_shortest_paths(
-        self, validity_matrix: ValidityMatrix
+        self, validity_matrix: ValidityMatrix, line_index: Optional[int] = None
     ) -> Optional[list[Path]]:
         """
         Finds the shortest paths from the constructed validity matrix if one exists using networkx.
@@ -420,6 +472,7 @@ class Fixer:
         Args:
             validity_matrix (ValidityMatrix): Validity matrix constructed from the entry
             to be processed against schema columns.
+            line_number (Optional[int]): Index of line being processed.
 
         Returns:
             Optional[list[Path]]. Returns a list of shortest paths if at least one exists, and
@@ -459,8 +512,16 @@ class Fixer:
                 )
             )
         except NetworkXNoPath:
-            logger.warning("No paths found")
+            if line_index is not None:
+                logger.warning(f"No paths found at line index {line_index}.")
+            else:
+                logger.warning("No paths found")
             return None
         except NodeNotFound:
-            logger.warning("Source node (0,0) not found")
+            if line_index is not None:
+                logger.warning(
+                    f"Source node (0,0) not found at line index {line_index}."
+                )
+            else:
+                logger.warning("Source node (0,0) not found")
             return None

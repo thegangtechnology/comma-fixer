@@ -52,14 +52,13 @@ def fixer(mock_schema):
 
 def test_add_valid_row(fixer):
     # Patch __check_valid to simulate valid token split
-    fixer._Fixer__check_valid = lambda entry: ["A", "B", "C"]
     res = fixer.process_row("some,data,row")
-    assert res == ["A", "B", "C"]
+    assert res is not None
+    assert res == ["some", "data", "row"]
 
 
 def test_add_invalid_row(fixer):
-    fixer._Fixer__check_valid = lambda entry: None
-    res = fixer.process_row("bad,data")
+    res = fixer.process_row("bad,row")
     assert res is None
 
 
