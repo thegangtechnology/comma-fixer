@@ -23,10 +23,12 @@ class Parsed:
 
     _schema: Schema
     _processed: str
-    _invalid_line_numbers: list[InvalidEntry]
+    _invalid_entries: list[InvalidEntry]
 
     @classmethod
-    def new(cls, schema) -> "Parsed":
+    def new(
+        cls, schema: Schema, processed_csv: str, invalid_entries: list[InvalidEntry]
+    ) -> "Parsed":
         """
         Creates an empty Parsed object with specified Schema.
 
@@ -36,7 +38,9 @@ class Parsed:
         Returns:
             Parsed. Parsed object with specified schema.
         """
-        return Parsed(_schema=schema, _processed="", _invalid_line_numbers=list())
+        return Parsed(
+            _schema=schema, _processed=processed_csv, _invalid_entries=invalid_entries
+        )
 
     def add_valid_entry(self, entry: ParsedEntry):
         """
@@ -72,7 +76,7 @@ class Parsed:
             line_index (int): Index of invalid entry in original CSV file.
             entry (str): String of invalid entry.
         """
-        self._invalid_line_numbers.append(tuple([line_index, entry]))
+        self._invalid_entries.append(tuple([line_index, entry]))
         if len(self._processed) != 0:
             self._processed = f"{self._processed}\n{entry}"
         else:
@@ -86,7 +90,7 @@ class Parsed:
         """
         processed_to_csv = pd.DataFrame(self._schema.get_series_dict())
         for line_number, line in enumerate(self._processed.split("\n")):
-            if (line_number, line) not in self._invalid_line_numbers:
+            if (line_number, line) not in self._invalid_entries:
                 parsed_csv = list(csv.reader([line]))[0]
                 processed_to_csv.loc[len(processed_to_csv)] = parsed_csv
         return processed_to_csv.to_csv(filepath, index=False)
@@ -97,8 +101,8 @@ class Parsed:
         the original CSV file.
         """
         print("Index\tLine entry")
-        for invalid_index, invalid_line in self._invalid_line_numbers:
+        for invalid_index, invalid_line in self._invalid_entries:
             print(f"{invalid_index}\t{invalid_line}")
 
     def invalid_entries_count(self) -> int:
-        return len(self._invalid_line_numbers)
+        return len(self._invalid_entries)

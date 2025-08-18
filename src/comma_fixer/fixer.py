@@ -12,6 +12,7 @@ from comma_fixer.schema import Schema
 ParsedEntry: TypeAlias = list[str]
 Path: TypeAlias = list[tuple[int, int]]
 ValidityMatrix: TypeAlias = np.ndarray
+InvalidEntry: TypeAlias = tuple[int, str]
 
 logger = logging.getLogger("Fixer Logs")
 
@@ -122,26 +123,90 @@ class Fixer:
             Parsed. Parsed object which holds processed lines, invalid lines, and
             function to export parsed lines to CSV.
         """
-        parsed = Parsed.new(schema=self.schema)
+        processed_csv: str = ""
+        invalid_entries: list[InvalidEntry] = list()
+
         line_count = 0
         with open(filepath) as file:
             for line in file:
                 line = line.strip()
                 if not skip_first_line:
-                    processed_entry = self.process_row(line, show_possible_parses)
+                    processed_entry = self.process_row(
+                        new_entry=line, show_possible_parses=show_possible_parses
+                    )
                     if processed_entry is not None:
-                        parsed.add_valid_entry(processed_entry)
+                        processed_csv = self._add_valid_entry(
+                            processed=processed_csv, entry=processed_entry
+                        )
                     else:
-                        parsed.add_invalid_entry(line_index=line_count, entry=line)
+                        processed_csv = self._add_invalid_entry(
+                            invalid_entries=invalid_entries,
+                            processed=processed_csv,
+                            line_index=line_count,
+                            entry=line,
+                        )
                     line_count += 1
                 else:
                     skip_first_line = not skip_first_line
+                    line_count += 1
         total_entries = line_count - 1 if skip_first_line else line_count
+        parsed = Parsed.new(
+            schema=self.schema,
+            processed_csv=processed_csv,
+            invalid_entries=invalid_entries,
+        )
+
         print(
             f"File has been processed!\nNumber of total entries: {total_entries}\
             \n Number of invalid entries: {parsed.invalid_entries_count()}"
         )
         return parsed
+
+    def _add_valid_entry(self, processed: str, entry: ParsedEntry) -> str:
+        """
+        Adds a valid entry to the string representation of the CSV with
+        quotes around elements containing commas.
+
+        Args:
+            entry (ParsedEntry): List of tokens to be added.
+        """
+        processed_entry = ""
+        for token in entry:
+            if "," in token:
+                if len(processed_entry) != 0:
+                    processed_entry = f'{processed_entry},"{token}"'
+                else:
+                    processed_entry = f'"{token}"'
+            else:
+                if len(processed_entry) != 0:
+                    processed_entry = f"{processed_entry},{token}"
+                else:
+                    processed_entry = f"{token}"
+        if len(processed) != 0:
+            return f"{processed}\n{processed_entry}"
+        else:
+            return processed_entry
+
+    def _add_invalid_entry(
+        self,
+        invalid_entries: list[InvalidEntry],
+        processed: str,
+        line_index: int,
+        entry: str,
+    ) -> str:
+        """
+        Adds invalid entries to string representation of the CSV,
+        and the list of invalid entries.
+
+        Args:
+            line_index (int): Index of invalid entry in original CSV file.
+            entry (str): String of invalid entry.
+        """
+        invalid_entries.append(tuple([line_index, entry]))
+        if len(processed) != 0:
+            return f"{processed}\n{entry}"
+        else:
+            return entry
 
     def __check_valid(self, new_entry: str) -> Optional[ParsedEntry]:
         """
