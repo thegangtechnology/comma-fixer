@@ -137,7 +137,7 @@ class Fixer:
         total_entries = line_count - 1 if skip_first_line else line_count
         print(
             f"File has been processed!\nNumber of total entries: {total_entries}\
-            \n Number of invalid entries: {len(parsed.invalid_line_numbers)}"
+            \n Number of invalid entries: {parsed.invalid_entries_count()}"
         )
         return parsed
 
