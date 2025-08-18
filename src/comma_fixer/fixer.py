@@ -47,7 +47,9 @@ class Fixer:
         """
         return Fixer(schema)
 
-    def process_row(self, new_entry: str, show_possible_parses: bool = False) -> Optional[ParsedEntry]:
+    def process_row(
+        self, new_entry: str, show_possible_parses: bool = False
+    ) -> Optional[ParsedEntry]:
         """
         Processes a new row against the columns in the schema.
 

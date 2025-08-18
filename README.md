@@ -15,12 +15,12 @@ from comma_fixer.fixer import Fixer
 
 We define a malformed CSV as a CSV where there may be rows with commas (the delimiter) have not been properly escaped, that is, there are no quotes surrounding entries that contain commas.
 
-Given a malformed CSV file where the columns are known, we want to process the file such that the malformed rows can be pointed out, and given some form of validation, identify whether a given 
+Given a malformed CSV file where the columns are known, we want to process the file such that the malformed rows can be pointed out, and given some form of validation, identify whether a given
 token belongs to a specific column or not to parse the rows properly.
 
 # Schema
 
-First, we must define the Schema of the CSV file by determining the column's type and what can be inserted into the column. 
+First, we must define the Schema of the CSV file by determining the column's type and what can be inserted into the column.
 
 ## Column
 
@@ -67,17 +67,17 @@ fixer = Fixer.new(schema)
 parsed = fixer.fix_file("/path/to/csv/file.csv")
 ```
 
-The `fix_file` function will process each line at a time and determine whether there is a valid parsing such that the tokens 
-can be placed in a valid column. 
+The `fix_file` function will process each line at a time and determine whether there is a valid parsing such that the tokens
+can be placed in a valid column.
 
-Additional arguments can be supplied on whether to skip the first line, or to display the possible parsings of invalid rows (rows 
-which are unable to be parsed due to having multiple possible parses). 
+Additional arguments can be supplied on whether to skip the first line, or to display the possible parsings of invalid rows (rows
+which are unable to be parsed due to having multiple possible parses).
 
 ```python
 fixer.fix_file("/path/to/csv/file.csv", skip_first_line=True, show_possible_parses=True)
 ```
 
-Individual lines can also be processed, but will not be added to a Parsed object, as each Parsed object is dependent on the input file. 
+Individual lines can also be processed, but will not be added to a Parsed object, as each Parsed object is dependent on the input file.
 The possible parses can also be printed out.
 
 ```python
@@ -87,10 +87,10 @@ fixer.process_row("row,to,be,processed", show_possible_parses=True)
 
 # Parsed
 
-The Parsed object is returned as a result of running `fix_file`. Invalid entries and their line numbers can be viewed by calling 
+The Parsed object is returned as a result of running `fix_file`. Invalid entries and their line numbers can be viewed by calling
 `print_invalid_entries()` on the Parsed object.
 
-Only valid entries that have successfully been processed can be exported to a CSV file through `export_to_csv_best_effort("/path/to/write/to/file.csv")`, 
+Only valid entries that have successfully been processed can be exported to a CSV file through `export_to_csv_best_effort("/path/to/write/to/file.csv")`,
 that is, no entries that are shown in `print_invalid_entries()` will be in the CSV file.
 
 ```python

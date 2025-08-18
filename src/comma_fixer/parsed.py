@@ -99,6 +99,6 @@ class Parsed:
         print("Index\tLine entry")
         for invalid_index, invalid_line in self._invalid_line_numbers:
             print(f"{invalid_index}\t{invalid_line}")
-        
+
     def invalid_entries_count(self) -> int:
         return len(self._invalid_line_numbers)
