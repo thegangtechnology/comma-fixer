@@ -10,10 +10,21 @@ from comma_fixer.parsed import Parsed
 from comma_fixer.schema import Schema
 
 ParsedEntry: TypeAlias = list[str]
+"""
+TypeAlias for rows that have been split or parsed.
+"""
 Path: TypeAlias = list[tuple[int, int]]
+"""
+TypeAlias for the shortest path taken in ValidityMatrix by node.
+"""
 ValidityMatrix: TypeAlias = np.ndarray
+"""
+TypeAlias for the integer matrix.
+"""
 InvalidEntry: TypeAlias = tuple[int, str]
-
+"""
+TypeAlias for invalid entries, storing line index and the line entry.
+"""
 logger = logging.getLogger("Fixer Logs")
 
 
@@ -148,15 +159,18 @@ class Fixer:
             for line in file:
                 line = line.strip()
                 if not skip_first_line:
+                    # Process the line
                     processed_entry = self.process_row(
                         new_entry=line,
                         show_possible_parses=show_possible_parses,
                         line_index=line_count,
                     )
+                    # If there exists a single path, there is a valid parsing
                     if processed_entry is not None:
                         processed_csv = self._add_valid_entry(
                             processed=processed_csv, entry=processed_entry
                         )
+                    # else, add it to invalid entries list
                     else:
                         processed_csv = self._add_invalid_entry(
                             invalid_entries=invalid_entries,
@@ -169,6 +183,8 @@ class Fixer:
                     skip_first_line = not skip_first_line
                     line_count += 1
         total_entries = line_count - 1 if skip_first_line else line_count
+
+        # Create parsed object for user to interact with
         parsed = Parsed.new(
             schema=self.schema,
             processed_csv=processed_csv,
@@ -253,9 +269,12 @@ class Fixer:
         Returns:
             Optional[ParsedEntry]: List of parsed tokens if the row is valid.
         """
+        # Create validity matrix from schema against tokens
         validity_matrix = self.__construct_validity_matrix(new_entry=new_entry)
         tokens = new_entry.split(",")
         (num_tokens, num_cols) = validity_matrix.shape
+
+        # Find the shortest valid path in validity matrix
         paths = self.__find_shortest_paths(
             validity_matrix=validity_matrix, line_index=line_index
         )
@@ -270,6 +289,8 @@ class Fixer:
             return None
         elif paths is not None:
             for path in paths:
+                # If there is a unique path,
+                # construct the processed row from tokens
                 return self.__construct_processed_entry_from_path(
                     path=path,
                     tokens=tokens,
@@ -308,9 +329,16 @@ class Fixer:
         processed_entry = ["" for _ in range(num_cols)]
         column_names = self.schema.get_column_names()
         previous_col = -1
+
+        # For each node in the path, construct the processed row
+        # using the tokens
         for step in path:
             if step[0] < num_tokens and step[1] < num_cols:
+                # Update the processed entry when the column changes in the path,
+                # i.e. (t, c) -> (t+1, c+1)
                 if step[1] != previous_col:
+                    # If the working string is empty but the column is non-nullable,
+                    # then the path is invalid.
                     if (
                         previous_col >= 0
                         and len(processed_entry[previous_col]) == 0
@@ -330,6 +358,9 @@ class Fixer:
                     processed_entry[step[1]] = tokens[step[0]].strip()
                     previous_col = step[1]
                 else:
+                    # Still on same column
+                    # Since it is a valid path, this means that
+                    # the current column allows commas
                     if len(processed_entry[step[1]]) == 0:
                         processed_entry[step[1]] = tokens[step[0]].strip()
                     elif len(tokens[step[0]]) != 0:
@@ -364,14 +395,19 @@ class Fixer:
 
         logger.info(f"Creating validity matrix for line '{new_entry}'")
 
+        # Note that the only movements that can be done are moving
+        # - south (next token is in same column)
+        # - south east (next token is in the next column)
         for token_index, token in enumerate(tokens):
             first_valid_index = -1
             for column_index, column_name in enumerate(self.schema.get_column_names()):
+                # Check first if there is a valid path leading to this element
                 preceding_zero = self.__check_preceding_zero_in_path(
                     validity_matrix=validity_matrix,
                     token_index=token_index,
                     column_index=column_index,
                 )
+                # Update the current element with validity
                 if preceding_zero or token_index == 0:
                     validity_matrix[token_index][column_index] = (
                         0
@@ -388,6 +424,9 @@ class Fixer:
                         and not self.schema.columns[column_name].has_commas()
                         and validity_matrix[token_index - 1][column_index] == 0
                     ):
+                        # If the current column does not allow commas and
+                        # the previous token is valid in this column,
+                        # then don't allow valid path to this element.
                         validity_matrix[token_index][column_index] = 1
                         logger.info(
                             f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
@@ -396,6 +435,9 @@ class Fixer:
                         len(token) == 0
                         and self.schema.columns[column_name].has_commas()
                     ):
+                        # Else if the current token is empty but the column allows
+                        # spaces, set this element to valid (may be due to typo).
+                        # Process later when building string from path.
                         validity_matrix[token_index][column_index] = 0
                         logger.info(
                             f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
@@ -403,6 +445,8 @@ class Fixer:
                 else:
                     logger.info(f"[{token_index}][{column_index}] not set")
                     continue
+                # For storing furthest index to stop processing further columns
+                # since we can not move across columns on the same token.
                 if (
                     validity_matrix[token_index][column_index] == 0
                     and first_valid_index == -1
@@ -478,6 +522,10 @@ class Fixer:
             Optional[list[Path]]. Returns a list of shortest paths if at least one exists, and
             None otherwise.
         """
+
+        # Construct the network graph from validity matrix,
+        # only adding nodes and edges where the value is 0
+        # in the validity matrix.
         (num_tokens, num_columns) = validity_matrix.shape
         G = nx.DiGraph()
         for row in range(num_tokens + 1):
