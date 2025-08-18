@@ -101,3 +101,19 @@ parsed.print_invalid_entries()
 # Example Python Notebook file
 
 An example of the library can be found [here](example.ipynb).
+
+# How does it work?
+
+Using the Schema, specifically, the functions which determine whether or not a token can be placed into a given column, we construct
+an $n \times m$ matrix, $v$, where $n$ is the number of tokens (i.e. the number of strings after splitting the row by the delimiter ','), and
+$m$ is the number of columns in the schema.
+
+We construct it such that an entry $v_{t,c}$ is $0$ if and only if the token $t$ can be placed in column $c$, and $1$ otherwise.
+Then we find the shortest path from the first token in the first column to the last token in the last column, i.e. $(0,0) \rightarrow (n,m)$.
+There exists a valid parsing if and only if the cost of the path is 0.
+
+To enforce the "no commas" constraint in a column, we don't allow movements from one token to another in the same column.
+
+We then construct a graph out of the matrix, where edges represent the value of $v_{t,c}$ from node $(t, c)$ to either $(t+1, c+1)$ or $(t+1, c)$.
+
+If there are multiple shortest paths found, then we fail to parse the row and the row must either be manually resolved or the schema must become more specific.
