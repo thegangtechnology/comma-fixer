@@ -1,0 +1,9 @@
+id,firstname,lastname,age,cat_owner,cat_names
+1,John,Appleseed,43,True,Apple
+2,John,Wick,35,False,
+3,Bob,Smiles,25,True,Fluffy,Fluffy Sr.
+4,Jennifer,Law,26,True,Snowy
+5,Taylor,Fast,35,True,Grey,Benson,Button
+6,Tom,Jack,18,True,,Mimi
+7,Jake,Howler,30,True,,,Mob,Psycho
+8,Pujan,,Sir,32,True,,,

@@ -47,7 +47,9 @@ class Fixer:
         """
         return Fixer(schema)
 
-    def process_row(self, new_entry: str) -> Optional[ParsedEntry]:
+    def process_row(
+        self, new_entry: str, show_possible_parses: bool = False
+    ) -> Optional[ParsedEntry]:
         """
         Processes a new row against the columns in the schema.
 
@@ -61,18 +63,60 @@ class Fixer:
             Optional[ParsedEntry]. Returns processed entry if valid parsing exists,
             and None otherwise.
         """
-        return self.__check_valid(new_entry.strip())
+        parsed_entry = self.__check_valid(new_entry.strip())
+        if parsed_entry is None and show_possible_parses:
+            self.all_possible_processed_strings(new_entry=new_entry)
+        return parsed_entry
 
-    def fix_file(self, filepath: str, skip_first_line: bool = True) -> Parsed:
+    def all_possible_processed_strings(self, new_entry: str) -> list[ParsedEntry]:
+        """
+        Processes a new row and returns all possible parsing as a list.
+
+        Args:
+            new_entry (str): Row to be processed.
+
+        Returns:
+            list[ParsedEntry]. Returns list of all possible parses that would
+            make the new entry valid with schema.
+        """
+        validity_matrix = self.__construct_validity_matrix(new_entry=new_entry)
+        tokens = new_entry.split(",")
+        (num_tokens, num_cols) = validity_matrix.shape
+        paths = self.__find_shortest_paths(validity_matrix=validity_matrix)
+        processed_paths = list()
+
+        if paths is not None:
+            for path in paths:
+                processed_path = self.__construct_processed_entry_from_path(
+                    path=path, tokens=tokens, num_cols=num_cols, num_tokens=num_tokens
+                )
+                if processed_path is None:
+                    logger.warning("Path failed - null entry in non-nullable column.")
+                else:
+                    print(processed_path)
+                    processed_paths.append(processed_path)
+        return processed_paths
+
+    def fix_file(
+        self,
+        filepath: str,
+        skip_first_line: bool = True,
+        show_possible_parses: bool = False,
+    ) -> Parsed:
         """
         Processes a CSV file line by line using schema,
         and identifies invalid entries.
+
+        If `show_possible_parses` is set to True, prints out possible parses of invalid entries
+        if and only if the invalid entry has multiple possible parsings, and the parsing does
+        not result in a null token being placed into a non-nullable column.
 
         After processing, prints out the number of valid entries against invalid entries.
 
         Args:
             filepath (str): Filepath of CSV file to be processed.
             skip_first_line (bool): Whether or not to skip the first line.
+            show_possible_parses (bool): If set to True,
 
         Returns:
             Parsed. Parsed object which holds processed lines, invalid lines, and
@@ -84,7 +128,7 @@ class Fixer:
             for line in file:
                 line = line.strip()
                 if not skip_first_line:
-                    processed_entry = self.process_row(line)
+                    processed_entry = self.process_row(line, show_possible_parses)
                     if processed_entry is not None:
                         parsed.add_valid_entry(processed_entry)
                     else:
@@ -95,7 +139,7 @@ class Fixer:
         total_entries = line_count - 1 if skip_first_line else line_count
         print(
             f"File has been processed!\nNumber of total entries: {total_entries}\
-            \n Number of invalid entries: {len(parsed.invalid_line_numbers)}"
+            \n Number of invalid entries: {parsed.invalid_entries_count()}"
         )
         return parsed
 
@@ -219,7 +263,7 @@ class Fixer:
                         )
                         else 1
                     )
-                    logger.warning(
+                    logger.info(
                         f"[{token_index}][{column_index}] set to {validity_matrix[token_index][column_index]}"
                     )
                     if (
@@ -228,7 +272,7 @@ class Fixer:
                         and validity_matrix[token_index - 1][column_index] == 0
                     ):
                         validity_matrix[token_index][column_index] = 1
-                        logger.warning(
+                        logger.info(
                             f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
                         )
                     elif (
@@ -236,11 +280,11 @@ class Fixer:
                         and self.schema.columns[column_name].has_commas()
                     ):
                         validity_matrix[token_index][column_index] = 0
-                        logger.warning(
+                        logger.info(
                             f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
                         )
                 else:
-                    logger.warning(f"[{token_index}][{column_index}] not set")
+                    logger.info(f"[{token_index}][{column_index}] not set")
                     continue
                 if (
                     validity_matrix[token_index][column_index] == 0
@@ -255,7 +299,7 @@ class Fixer:
                 ):
                     first_valid_index = column_index
                 if token_index != 0 and column_index > furthest_col:
-                    logger.warning(f"Break at {column_index}")
+                    logger.info(f"Break at {column_index}")
                     break
             furthest_col = (
                 first_valid_index
@@ -339,7 +383,7 @@ class Fixer:
                             v_of_edge=(row + 1, column),
                             weight=validity_matrix[row][column],
                         )
-        logger.warning(validity_matrix)
+        logger.info(validity_matrix)
         try:
             return list(
                 nx.all_shortest_paths(

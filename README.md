@@ -3,41 +3,101 @@ Python Library for fixing malformed csv files due to excessive commas
 
 # Quickstart
 
-The library can be imported like so:
+The library can (currently) be imported like so:
 
 ```python
+from comma_fixer.column import Column
 from comma_fixer.schema import Schema
 from comma_fixer.fixer import Fixer
 ```
 
+# Problem Statement
+
+We define a malformed CSV as a CSV where there may be rows with commas (the delimiter) have not been properly escaped, that is, there are no quotes surrounding entries that contain commas.
+
+Given a malformed CSV file where the columns are known, we want to process the file such that the malformed rows can be pointed out, and given some form of validation, identify whether a given
+token belongs to a specific column or not to parse the rows properly.
+
 # Schema
-Create a Schema to define each column's name, type, and what can be inserted into that column (i.e. whether it contains commas, spaces, etc.).
 
-String, integer, float, and datetime type columns can be added to the schema.
+First, we must define the Schema of the CSV file by determining the column's type and what can be inserted into the column.
 
+## Column
+
+Each column can be defined by the name of the column, the data type, whether it can be null, whether it can contain commas or spaces, as well as an optional RegEx formatting for string type columns.
+
+Column Examples
 ```python
-schema = Schema.new()
-schema.add_str_column("string_column")
-schema.add_int_column("integer_column")
+Column.string(name="name", is_nullable=False, has_commas=False, has_spaces=True) # Text columns
+Column.numeric(name="age") # Integer columns
+Column.float(name="height") # Float columns
+Column.datetime(name="birthdate") # Datetime columns
 ```
 
-Adding a column will automatically create a function to check whether an element can be placed into that column - the `is_valid` function.
+For columns without a predefined type, i.e. String, Numeric, Float and Datetime, a custom column can be created, but will require importing the `pandas` library. This is because the library needs to create `panda.Series` for each column to be able to export the processed rows into a CSV file.
+
+```python
+import pandas as pd
+
+Column.new(name="has_cats", data_type=bool, series_type=pd.Series(dtype=bool), is_nullable=False, has_commas=False, has_spaces=False, format=None) # For columns that don't have predefined types
+```
+
+A Schema can then be created from a list of columns **in the order of columns in the CSV file**.
+
+```python
+schema = Schema.new(columns=[
+    Column.string(name="username", is_nullable=False, has_commas=False, has_spaces=False),
+    Column.string(name="email", is_nullable=True, has_commas=False, has_spaces=False, format=r"[a-zA-Z0-9\.-]+@[a-z]+(\.[a-z]+)+")
+    Column.numeric(name="age")
+    Column.datetime(name="birthdate")
+    Column.float(name="height")
+])
+schema.info()
+```
+
+Once a Schema is created, it can no longer be added to or editted. Any modifications will require creating a new Schema.
+Schemas can be viewed with `.info()`, which will display each column's attributes as a table.
 
 # Fixer
-Create a Fixer to process a CSV file and separate valid entries from invalid entries, according to the specified Schema.
+
+Schemas are required to create Fixer objects. Fixers will process the CSV file at the given filepath and return a Parsed object.
 
 ```python
 fixer = Fixer.new(schema)
-parsed = fixer.fix_file("filepath")
+parsed = fixer.fix_file("/path/to/csv/file.csv")
 ```
 
-`fix_file(filepath)` returns a `Parsed` object, which stores all entries from the original CSV file. Valid, processed entries will
-contain quotes on elements containing commas.
+The `fix_file` function will process each line at a time and determine whether there is a valid parsing such that the tokens
+can be placed in a valid column.
 
-Exporting to CSV will only include valid entries, without invalid entries. However, invalid entries can be viewed by calling
-`print_invalid_entries()`, which will display their line index respective to the original CSV file that has been read from.
+Additional arguments can be supplied on whether to skip the first line, or to display the possible parsings of invalid rows (rows
+which are unable to be parsed due to having multiple possible parses).
 
 ```python
-parsed.export_to_csv_best_effort("processed_filepath")
+fixer.fix_file("/path/to/csv/file.csv", skip_first_line=True, show_possible_parses=True)
+```
+
+Individual lines can also be processed, but will not be added to a Parsed object, as each Parsed object is dependent on the input file.
+The possible parses can also be printed out.
+
+```python
+fixer.process_row("row,to,be,processed", show_possible_parses=True)
+```
+
+
+# Parsed
+
+The Parsed object is returned as a result of running `fix_file`. Invalid entries and their line numbers can be viewed by calling
+`print_invalid_entries()` on the Parsed object.
+
+Only valid entries that have successfully been processed can be exported to a CSV file through `export_to_csv_best_effort("/path/to/write/to/file.csv")`,
+that is, no entries that are shown in `print_invalid_entries()` will be in the CSV file.
+
+```python
+parsed.export_to_csv_best_effort("/path/to/processed/file.csv")
 parsed.print_invalid_entries()
 ```
+
+# Example Python Notebook file
+
+An example of the library can be found [here](example.ipynb).

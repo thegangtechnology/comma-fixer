@@ -1,0 +1,9 @@
+id,username,number_of_platforms,platforms,number_of_cats,cat_names
+1,john_appleseed,2,"facebook,instagram",1,Apple
+2,john_wick,0,,0,
+3,bob,1,instagram,2,"fluffy,fluffy sr."
+4,jlaw,1,instagram,1,snowy
+5,tay_fast,2,"instagram,youtube",3,"grey,benson,button"
+6,tommyj,0,,1,mimi
+7,jakeyh,2,"twitter,instagram",2,"mob,Psycho"
+8,pujanf,0,,2,

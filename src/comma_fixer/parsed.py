@@ -21,9 +21,9 @@ class Parsed:
         invalid_line_numbers (list[InvalidEntry]): List of invalid entries containing line number and entry.
     """
 
-    schema: Schema
-    processed: str
-    invalid_line_numbers: list[InvalidEntry]
+    _schema: Schema
+    _processed: str
+    _invalid_line_numbers: list[InvalidEntry]
 
     @classmethod
     def new(cls, schema) -> "Parsed":
@@ -36,7 +36,7 @@ class Parsed:
         Returns:
             Parsed. Parsed object with specified schema.
         """
-        return Parsed(schema, "", list())
+        return Parsed(_schema=schema, _processed="", _invalid_line_numbers=list())
 
     def add_valid_entry(self, entry: ParsedEntry):
         """
@@ -58,10 +58,10 @@ class Parsed:
                     processed_entry = f"{processed_entry},{token}"
                 else:
                     processed_entry = f"{token}"
-        if len(self.processed) != 0:
-            self.processed = f"{self.processed}\n{processed_entry}"
+        if len(self._processed) != 0:
+            self._processed = f"{self._processed}\n{processed_entry}"
         else:
-            self.processed = processed_entry
+            self._processed = processed_entry
 
     def add_invalid_entry(self, line_index: int, entry: str):
         """
@@ -72,11 +72,11 @@ class Parsed:
             line_index (int): Index of invalid entry in original CSV file.
             entry (str): String of invalid entry.
         """
-        self.invalid_line_numbers.append(tuple([line_index, entry]))
-        if len(self.processed) != 0:
-            self.processed = f"{self.processed}\n{entry}"
+        self._invalid_line_numbers.append(tuple([line_index, entry]))
+        if len(self._processed) != 0:
+            self._processed = f"{self._processed}\n{entry}"
         else:
-            self.processed = entry
+            self._processed = entry
 
     def export_to_csv_best_effort(self, filepath: str):
         """
@@ -84,9 +84,9 @@ class Parsed:
 
         Converts valid entries into DataFrame before exporting to CSV.
         """
-        processed_to_csv = pd.DataFrame(self.schema.get_series_dict())
-        for line_number, line in enumerate(self.processed.split("\n")):
-            if (line_number, line) not in self.invalid_line_numbers:
+        processed_to_csv = pd.DataFrame(self._schema.get_series_dict())
+        for line_number, line in enumerate(self._processed.split("\n")):
+            if (line_number, line) not in self._invalid_line_numbers:
                 parsed_csv = list(csv.reader([line]))[0]
                 processed_to_csv.loc[len(processed_to_csv)] = parsed_csv
         return processed_to_csv.to_csv(filepath, index=False)
@@ -97,5 +97,8 @@ class Parsed:
         the original CSV file.
         """
         print("Index\tLine entry")
-        for invalid_index, invalid_line in self.invalid_line_numbers:
+        for invalid_index, invalid_line in self._invalid_line_numbers:
             print(f"{invalid_index}\t{invalid_line}")
+
+    def invalid_entries_count(self) -> int:
+        return len(self._invalid_line_numbers)
