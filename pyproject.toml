@@ -1,9 +1,9 @@
 [project]
 name = "comma-fixer"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 authors = [
-    {name = "Phavarisa Limchitti",email = "aom.limchitti@gmail.com"}
+    {name = "Phavarisa Limchitti",email = "l.phavarisa@thegang.tech"}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
