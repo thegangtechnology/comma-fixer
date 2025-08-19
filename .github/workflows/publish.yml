@@ -42,7 +42,7 @@ jobs:
       PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
     steps:
       - run: |
-          [[ "${{ env.PYTHON_VERSION }}" == "x.yz" ]] && echo "Please set PYTHON_VERSION" &&
+          [[ "${{ env.PYTHON_VERSION }}" == "x.yz" ]] && echo "Please set PYTHON_VERSION" && exit 1 || exit 0
 
 
   publish:
