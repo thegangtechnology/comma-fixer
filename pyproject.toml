@@ -13,6 +13,9 @@ dependencies = [
     "networkx (>=3.5,<4.0)",
 ]
 
+[project.urls]
+Homepage = "https://github.com/thegangtechnology/comma-fixer"
+Issues = "https://github.com/thegangtechnology/comma-fixer/issues"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
