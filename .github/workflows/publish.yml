@@ -46,7 +46,7 @@ jobs:
 
 
   publish:
-    needs: [ check-runner ]
+    needs: [ check-runner, get-env ]
     uses: thegangtechnology/shared-workflow/.github/workflows/pypi-publish.yml@jeep-v4.3/deploy-python-package
     with:
       runner: ${{ needs.check-runner.outputs.runner-label }}
