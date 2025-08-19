@@ -2,9 +2,9 @@ name: Publish package
 
 on:
   push:
-    branches:
-      - main
-      - jeep/*
+    tags:
+      - 'v*'
+      - 'test'
   workflow_dispatch:
 
 concurrency:
