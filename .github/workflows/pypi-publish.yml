@@ -15,7 +15,6 @@ concurrency:
 env:
   PYTHON_VERSION: '3.13'
   PACKAGE_NAME: 'comma-fixer'
-  TEST_PUBLISH: 'true'
 
 jobs:
   check-runner:
@@ -82,7 +81,7 @@ jobs:
   publish-to-pypi:
     name: Publish Python 🐍 distribution 📦 to PyPI
     needs: [ check-runner, get-env, build ]
-    if:  ${{ needs.get-env.outputs.TEST_PUBLISH  == 'false'}}
+#    if:  ${{ needs.get-env.outputs.TEST_PUBLISH  == 'false'}}
     runs-on: ${{ needs.check-runner.outputs.runner-label }}
     environment:
       name: pypi
@@ -100,26 +99,26 @@ jobs:
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
-  # Test publish
-  publish-to-testpypi:
-    name: Publish Python 🐍 distribution 📦 to TestPyPI
-    needs: [ check-runner, get-env, build ]
-    if:  ${{ needs.get-env.outputs.TEST_PUBLISH == 'true'}}
-    runs-on: ${{ needs.check-runner.outputs.runner-label }}
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/${{ needs.get-env.outputs.PACKAGE_NAME }}
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-    steps:
-      # Download built package
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-      # Test publish package to pypi
-      - name: Publish distribution 📦 to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
+#  # Test publish
+#  publish-to-testpypi:
+#    name: Publish Python 🐍 distribution 📦 to TestPyPI
+#    needs: [ check-runner, get-env, build ]
+#    if:  ${{ needs.get-env.outputs.TEST_PUBLISH == 'true'}}
+#    runs-on: ${{ needs.check-runner.outputs.runner-label }}
+#    environment:
+#      name: testpypi
+#      url: https://test.pypi.org/p/${{ needs.get-env.outputs.PACKAGE_NAME }}
+#    permissions:
+#      id-token: write  # IMPORTANT: mandatory for trusted publishing
+#    steps:
+#      # Download built package
+#      - name: Download all the dists
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: python-package-distributions
+#          path: dist/
+#      # Test publish package to pypi
+#      - name: Publish distribution 📦 to TestPyPI
+#        uses: pypa/gh-action-pypi-publish@release/v1
+#        with:
+#          repository-url: https://test.pypi.org/legacy/
