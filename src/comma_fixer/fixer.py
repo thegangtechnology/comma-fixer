@@ -153,6 +153,7 @@ class Fixer:
         """
         processed_csv: str = ""
         invalid_entries: list[InvalidEntry] = list()
+        first_row_is_header = skip_first_line
 
         line_count = 0
         with open(filepath) as file:
@@ -189,6 +190,7 @@ class Fixer:
             schema=self.schema,
             processed_csv=processed_csv,
             invalid_entries=invalid_entries,
+            skip_first_line=first_row_is_header,
         )
 
         print(
