@@ -37,21 +37,8 @@ jobs:
             echo "runner-label=ubuntu-latest" >> $GITHUB_OUTPUT
           fi
 
-  get-env:
-    needs: check-runner
-    name: Get Environment vars
-    runs-on: ${{ needs.check-runner.outputs.runner-label }}
-    outputs:
-      PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
-      PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
-      TEST_PUBLISH: ${{ env.TEST_PUBLISH }}
-    steps:
-      - run: |
-          [[ "${{ env.PYTHON_VERSION }}" == "x.yz" ]] && echo "Please set PYTHON_VERSION" && exit 1 || exit 0
-
-
   build:
-    needs: [ check-runner, get-env ]
+    needs: [ check-runner ]
     runs-on: ${{ needs.check-runner.outputs.runner-label }}
     timeout-minutes: 20
     steps:
@@ -61,12 +48,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ needs.get-env.outputs.PYTHON_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
       # setup poetry (package manager)
-      - name: Install poetry ${{ needs.get-env.outputs.POETRY_VERSION }}
+      - name: Install poetry ${{ env.POETRY_VERSION }}
         run: |
           python -m pip install --upgrade pip
-          pip install poetry==${{ needs.get-env.outputs.POETRY_VERSION }}
+          pip install poetry==${{ env.POETRY_VERSION }}
           poetry config installer.max-workers 10 --local
       # install package and dependencies
       - name: Install dependencies
@@ -84,12 +71,12 @@ jobs:
 
   publish-to-pypi:
     name: Publish Python 🐍 distribution 📦 to PyPI
-    needs: [ check-runner, get-env, build ]
+    needs: [ check-runner, build ]
 #    if:  ${{ needs.get-env.outputs.TEST_PUBLISH  == 'false'}}
     runs-on: ${{ needs.check-runner.outputs.runner-label }}
     environment:
       name: pypi
-      url: https://pypi.org/p/${{ needs.get-env.outputs.PACKAGE_NAME }}
+      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
     permissions:
       id-token: write
     steps:
@@ -102,27 +89,3 @@ jobs:
       # Publish package to pypi
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-
-#  # Test publish
-#  publish-to-testpypi:
-#    name: Publish Python 🐍 distribution 📦 to TestPyPI
-#    needs: [ check-runner, get-env, build ]
-#    if:  ${{ needs.get-env.outputs.TEST_PUBLISH == 'true'}}
-#    runs-on: ${{ needs.check-runner.outputs.runner-label }}
-#    environment:
-#      name: testpypi
-#      url: https://test.pypi.org/p/${{ needs.get-env.outputs.PACKAGE_NAME }}
-#    permissions:
-#      id-token: write  # IMPORTANT: mandatory for trusted publishing
-#    steps:
-#      # Download built package
-#      - name: Download all the dists
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: python-package-distributions
-#          path: dist/
-#      # Test publish package to pypi
-#      - name: Publish distribution 📦 to TestPyPI
-#        uses: pypa/gh-action-pypi-publish@release/v1
-#        with:
-#          repository-url: https://test.pypi.org/legacy/
