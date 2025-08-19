@@ -3,8 +3,7 @@ name: Publish package
 on:
   push:
     tags:
-      - 'v*'
-      - 'test'
+      - '[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
 
 concurrency:
@@ -47,7 +46,7 @@ jobs:
 
   publish:
     needs: [ check-runner, get-env ]
-    uses: thegangtechnology/shared-workflow/.github/workflows/pypi-publish.yml@jeep-v4.3/deploy-python-package
+    uses: thegangtechnology/shared-workflow/.github/workflows/pypi-publish.yml@v4.3
     with:
       runner: ${{ needs.check-runner.outputs.runner-label }}
       python-version: ${{ needs.get-env.outputs.PYTHON_VERSION }}

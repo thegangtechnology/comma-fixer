@@ -2,11 +2,8 @@ name: CI
 
 on:
   push:
-    branches-ignore:
-      - 'jeep/*'
   pull_request:
-    branches-ignore:
-      - 'jeep/*'
+
 jobs:
   test:
     runs-on: ubuntu-latest
