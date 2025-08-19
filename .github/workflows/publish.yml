@@ -52,4 +52,4 @@ jobs:
       runner: ${{ needs.check-runner.outputs.runner-label }}
       python-version: ${{ needs.get-env.outputs.PYTHON_VERSION }}
     secrets:
-      GH_TOKEN: ${{ GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
