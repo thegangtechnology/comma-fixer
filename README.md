@@ -34,8 +34,8 @@ Column.float(name="height") # Float columns
 Column.datetime(name="birthdate") # Datetime columns
 ```
 
-**Regarding datetime column**, all inputs are assumed to be in the format `%Y-%m-%d`, that is, `YYYY-MM-DD`, which is the ISO 8601 datetime format, otherwise, the values 
-will fail to be parsed. If other `datetime` formats are used, then it is advised to store it as a string column and specify the format. 
+**Regarding datetime column**, all inputs are assumed to be in the format `%Y-%m-%d`, that is, `YYYY-MM-DD`, which is the ISO 8601 datetime format, otherwise, the values
+will fail to be parsed. If other `datetime` formats are used, then it is advised to store it as a string column and specify the format.
 
 For columns without a predefined type, i.e. String, Numeric, Float and Datetime, a custom column can be created, but will require importing the `pandas` library. This is because the library needs to create `panda.Series` for each column to be able to export the processed rows into a CSV file.
 
