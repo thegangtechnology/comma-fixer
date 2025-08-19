@@ -2,8 +2,6 @@ name: CI
 
 on:
   push:
-    branches-ignore:
-      - jeep/*
   pull_request:
 
 jobs:
