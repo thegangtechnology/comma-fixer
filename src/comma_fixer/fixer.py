@@ -519,6 +519,17 @@ class Fixer:
         return False
 
     def __create_graph(self, validity_matrix: ValidityMatrix) -> nx.DiGraph:
+        """
+        Creates Directed Acyclic Graph for finding valid parsings 
+        via Single Source Shortest Paths (SSSP).
+
+        Args:
+            validity_matrix (ValidityMatrix): Matrix containing which 
+            tokens can be placed in which columns.
+
+        Returns:
+            nx.DiGraph. Returns networkx.DiGraph for running SSSP on.
+        """
         (num_tokens, num_columns) = validity_matrix.shape
         columns = self.schema.get_column_names()
 
@@ -527,6 +538,7 @@ class Fixer:
             for column in range(num_columns):
                 add_diagonal_edge: bool = False
                 add_vertical_edge: bool = False
+                # Handling edge case of matrix (if on last column)
                 if (
                     row + 1 < num_tokens
                     and column == num_columns - 1
@@ -536,6 +548,9 @@ class Fixer:
                         validity_matrix[row][column] != 1
                         and validity_matrix[row + 1][column] != 1
                     ):
+                        # Add vertical edge if and only if the
+                        # next token can be placed in the same column
+                        # and column allows commas
                         add_vertical_edge = True
                 elif (
                     row + 1 < num_tokens
@@ -543,11 +558,16 @@ class Fixer:
                     and validity_matrix[row][column] != 1
                 ):
                     if validity_matrix[row + 1][column + 1] != 1:
+                        # Add diagonal edge if and only if the
+                        # next token can be placed in the next column
                         add_diagonal_edge = True
                     if (
                         self.schema.get_column(columns[column]).has_commas()
                         and validity_matrix[row + 1][column] != 1
                     ):
+                        # Add vertical edge if and only if the
+                        # next token can be placed in the same column
+                        # and column allows commas
                         add_vertical_edge = True
                 if add_diagonal_edge:
                     G.add_edge(
