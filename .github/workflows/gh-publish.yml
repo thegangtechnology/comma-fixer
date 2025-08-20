@@ -50,7 +50,7 @@ jobs:
 
   publish:
     needs: [ check-runner, get-env ]
-    uses: thegangtechnology/shared-workflow/.github/workflows/github-publish-pythonpackage.yml@jeep/fix-gh-publish
+    uses: thegangtechnology/shared-workflow/.github/workflows/github-publish-pythonpackage.yml@jeep-v4.3/publish-pypi
     with:
       runner: ${{ needs.check-runner.outputs.runner-label }}
       python-version: ${{ needs.get-env.outputs.PYTHON_VERSION }}
