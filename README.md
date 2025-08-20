@@ -3,7 +3,13 @@ Python Library for fixing malformed csv files due to excessive commas
 
 # Quickstart
 
-The library can (currently) be imported like so:
+The module can be pip installed using pip; requires Python version $\ge 3.13$.
+
+```bash
+pip install comma-fixer
+```
+
+It can then be imported like so:
 
 ```python
 from comma_fixer.column import Column
