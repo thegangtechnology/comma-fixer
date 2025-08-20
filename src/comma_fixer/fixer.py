@@ -520,11 +520,11 @@ class Fixer:
 
     def __create_graph(self, validity_matrix: ValidityMatrix) -> nx.DiGraph:
         """
-        Creates Directed Acyclic Graph for finding valid parsings 
+        Creates Directed Acyclic Graph for finding valid parsings
         via Single Source Shortest Paths (SSSP).
 
         Args:
-            validity_matrix (ValidityMatrix): Matrix containing which 
+            validity_matrix (ValidityMatrix): Matrix containing which
             tokens can be placed in which columns.
 
         Returns:
