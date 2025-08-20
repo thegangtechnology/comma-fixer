@@ -42,6 +42,13 @@ jobs:
     steps:
       # clone repository
       - uses: actions/checkout@v4
+      # Bump version
+      - name: Replace version in file
+        run: |
+          echo "Replacing version with ${{  github.ref_name }}"
+          sed -i -e 's/version = "1.0.1"/version = "${{  github.ref_name }}"/g' pyproject.toml
+          # Show result
+          grep 'version =' pyproject.toml
       # setup python
       - name: Set up Python
         uses: actions/setup-python@v5
