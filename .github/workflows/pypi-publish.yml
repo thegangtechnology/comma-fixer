@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
+    branches:
+      - jeep/*
   workflow_dispatch:
 
 concurrency:
@@ -42,6 +44,14 @@ jobs:
     steps:
       # clone repository
       - uses: actions/checkout@v4
+      # Bump version
+      - name: Replace version in file
+        run: |
+          NEW_VERSION="${GITHUB_REF#refs/tags/}"
+          echo "Replacing version with $NEW_VERSION"
+          sed -i -E 's/version = "[0-9]+\.[0-9]+\.[0-9]+"/version = "'"$NEW_VERSION"'"/' pyproject.toml
+          # Show result
+          grep 'version =' pyproject.toml
       # setup python
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -67,23 +77,23 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  publish-to-pypi:
-    name: Publish Python 🐍 distribution 📦 to PyPI
-    needs: [ check-runner, build ]
-#    if:  ${{ needs.get-env.outputs.TEST_PUBLISH  == 'false'}}
-    runs-on: ${{ needs.check-runner.outputs.runner-label }}
-    environment:
-      name: pypi
-      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
-    permissions:
-      id-token: write
-    steps:
-      # Download built package
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-      # Publish package to pypi
-      - name: Publish distribution 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+#  publish-to-pypi:
+#    name: Publish Python 🐍 distribution 📦 to PyPI
+#    needs: [ check-runner, build ]
+##    if:  ${{ needs.get-env.outputs.TEST_PUBLISH  == 'false'}}
+#    runs-on: ${{ needs.check-runner.outputs.runner-label }}
+#    environment:
+#      name: pypi
+#      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
+#    permissions:
+#      id-token: write
+#    steps:
+#      # Download built package
+#      - name: Download all the dists
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: python-package-distributions
+#          path: dist/
+#      # Publish package to pypi
+#      - name: Publish distribution 📦 to PyPI
+#        uses: pypa/gh-action-pypi-publish@release/v1
