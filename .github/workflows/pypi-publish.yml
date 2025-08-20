@@ -74,23 +74,23 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-#  publish-to-pypi:
-#    name: Publish Python 🐍 distribution 📦 to PyPI
-#    needs: [ check-runner, build ]
-##    if:  ${{ needs.get-env.outputs.TEST_PUBLISH  == 'false'}}
-#    runs-on: ${{ needs.check-runner.outputs.runner-label }}
-#    environment:
-#      name: pypi
-#      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
-#    permissions:
-#      id-token: write
-#    steps:
-#      # Download built package
-#      - name: Download all the dists
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: python-package-distributions
-#          path: dist/
-#      # Publish package to pypi
-#      - name: Publish distribution 📦 to PyPI
-#        uses: pypa/gh-action-pypi-publish@release/v1
+  publish-to-pypi:
+    name: Publish Python 🐍 distribution 📦 to PyPI
+    needs: [ check-runner, build ]
+#    if:  ${{ needs.get-env.outputs.TEST_PUBLISH  == 'false'}}
+    runs-on: ${{ needs.check-runner.outputs.runner-label }}
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
+    permissions:
+      id-token: write
+    steps:
+      # Download built package
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      # Publish package to pypi
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
