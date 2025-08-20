@@ -331,6 +331,7 @@ class Fixer:
         processed_entry = ["" for _ in range(num_cols)]
         column_names = self.schema.get_column_names()
         previous_col = -1
+        logger.info(f"Path: {path}")
 
         # For each node in the path, construct the processed row
         # using the tokens
@@ -369,6 +370,18 @@ class Fixer:
                         processed_entry[step[1]] = (
                             f"{processed_entry[step[1]]},{tokens[step[0]].strip()}"
                         )
+        if (
+            previous_col >= 0
+            and len(processed_entry[previous_col]) == 0
+            and not self.schema.columns[column_names[previous_col]].is_nullable()
+        ):
+            if line_index is not None:
+                logger.warning(
+                    f"Failed at line index {line_index} - Parsed null element into non-null column."
+                )
+            else:
+                logger.warning("Failed - Parsed null element into non-null column.")
+            return None
         return processed_entry
 
     def __construct_validity_matrix(self, new_entry: str) -> ValidityMatrix:
@@ -421,23 +434,23 @@ class Fixer:
                     logger.info(
                         f"[{token_index}][{column_index}] set to {validity_matrix[token_index][column_index]}"
                     )
+                    # if (
+                    #     token_index > 0
+                    #     and not self.schema.columns[column_name].has_commas()
+                    #     and validity_matrix[token_index - 1][column_index] == 0
+                    # ):
+                    #     # If the current column does not allow commas and
+                    #     # the previous token is valid in this column,
+                    #     # then don't allow valid path to this element.
+                    #     validity_matrix[token_index][column_index] = 1
+                    #     logger.info(
+                    #         f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
+                    #     )
                     if (
-                        token_index > 0
-                        and not self.schema.columns[column_name].has_commas()
-                        and validity_matrix[token_index - 1][column_index] == 0
-                    ):
-                        # If the current column does not allow commas and
-                        # the previous token is valid in this column,
-                        # then don't allow valid path to this element.
-                        validity_matrix[token_index][column_index] = 1
-                        logger.info(
-                            f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
-                        )
-                    elif (
                         len(token) == 0
                         and self.schema.columns[column_name].has_commas()
                     ):
-                        # Else if the current token is empty but the column allows
+                        # If the current token is empty but the column allows
                         # spaces, set this element to valid (may be due to typo).
                         # Process later when building string from path.
                         validity_matrix[token_index][column_index] = 0
@@ -505,6 +518,51 @@ class Fixer:
                 return True
         return False
 
+    def __create_graph(self, validity_matrix: ValidityMatrix) -> nx.DiGraph:
+        (num_tokens, num_columns) = validity_matrix.shape
+        columns = self.schema.get_column_names()
+
+        G = nx.DiGraph()
+        for row in range(num_tokens):
+            for column in range(num_columns):
+                add_diagonal_edge: bool = False
+                add_vertical_edge: bool = False
+                if (
+                    row + 1 < num_tokens
+                    and column == num_columns - 1
+                    and self.schema.get_column(columns[column]).has_commas()
+                ):
+                    if (
+                        validity_matrix[row][column] != 1
+                        and validity_matrix[row + 1][column] != 1
+                    ):
+                        add_vertical_edge = True
+                elif (
+                    row + 1 < num_tokens
+                    and column + 1 < num_columns
+                    and validity_matrix[row][column] != 1
+                ):
+                    if validity_matrix[row + 1][column + 1] != 1:
+                        add_diagonal_edge = True
+                    if (
+                        self.schema.get_column(columns[column]).has_commas()
+                        and validity_matrix[row + 1][column] != 1
+                    ):
+                        add_vertical_edge = True
+                if add_diagonal_edge:
+                    G.add_edge(
+                        u_of_edge=(row, column),
+                        v_of_edge=(row + 1, column + 1),
+                        weight=validity_matrix[row][column],
+                    )
+                if add_vertical_edge:
+                    G.add_edge(
+                        u_of_edge=(row, column),
+                        v_of_edge=(row + 1, column),
+                        weight=validity_matrix[row][column],
+                    )
+        return G
+
     def __find_shortest_paths(
         self, validity_matrix: ValidityMatrix, line_index: Optional[int] = None
     ) -> Optional[list[Path]]:
@@ -529,35 +587,14 @@ class Fixer:
         # only adding nodes and edges where the value is 0
         # in the validity matrix.
         (num_tokens, num_columns) = validity_matrix.shape
-        G = nx.DiGraph()
-        for row in range(num_tokens + 1):
-            for column in range(num_columns + 1):
-                if row < num_tokens and column < num_columns:
-                    if validity_matrix[row][column] != 1:
-                        G.add_edge(
-                            u_of_edge=(row, column),
-                            v_of_edge=(row + 1, column + 1),
-                            weight=validity_matrix[row][column],
-                        )
-                        G.add_edge(
-                            u_of_edge=(row, column),
-                            v_of_edge=(row + 1, column),
-                            weight=validity_matrix[row][column],
-                        )
-                elif row < num_tokens and column == num_columns - 1:
-                    if validity_matrix[row][column] != 1:
-                        G.add_edge(
-                            u_of_edge=(row, column),
-                            v_of_edge=(row + 1, column),
-                            weight=validity_matrix[row][column],
-                        )
+        G = self.__create_graph(validity_matrix=validity_matrix)
         logger.info(validity_matrix)
         try:
             return list(
                 nx.all_shortest_paths(
                     G=G,
                     source=(0, 0),
-                    target=(num_tokens, num_columns),
+                    target=(num_tokens - 1, num_columns - 1),
                     weight="weight",
                 )
             )
