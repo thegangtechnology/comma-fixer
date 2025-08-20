@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, TypeAlias
+from typing import Callable, Optional, TypeAlias
 
 import pandas as pd
 
@@ -48,7 +48,7 @@ class Schema:
         column_by_name = dict()
         for column in columns:
             column_by_name[column.get_name()] = column
-        return Schema(column_by_name)
+        return Schema(columns=column_by_name)
 
     def is_token_valid(self, token: str, column_name: str) -> bool:
         """
@@ -90,6 +90,19 @@ class Schema:
         for column_name, column in self.columns.items():
             dataframe_columns[column_name] = column.get_series_type()
         return dataframe_columns
+
+    def get_column(self, column_name: str) -> Optional[Column]:
+        """
+        Returns the Column object associated with the given column name.
+        If no column with the name exists, returns None.
+
+        Args:
+            column_name (str): Name of the column being retrieved.
+
+        Returns:
+            Optional[Column]. Returns column if there is one associated, else None.
+        """
+        return self.columns[column_name]
 
     def __str__(self) -> str:
         return f"{self.types}"
