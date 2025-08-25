@@ -159,7 +159,7 @@ class Fixer:
         first_row_is_header = skip_first_line
 
         line_count = 0
-        try: 
+        try:
             with open(filepath, mode="rt", encoding=encoding) as file:
                 for line in file:
                     line = line.strip()
