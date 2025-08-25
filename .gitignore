@@ -210,3 +210,4 @@ __marimo__/
 src/*.ipynb
 .python-version
 .idea/*
+.DS_Store

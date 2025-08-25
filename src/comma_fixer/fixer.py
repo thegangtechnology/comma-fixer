@@ -129,6 +129,7 @@ class Fixer:
     def fix_file(
         self,
         filepath: str,
+        encoding: str = "utf-8",
         skip_first_line: bool = True,
         show_possible_parses: bool = False,
     ) -> Parsed:
@@ -144,8 +145,10 @@ class Fixer:
 
         Args:
             filepath (str): Filepath of CSV file to be processed.
-            skip_first_line (bool): Whether or not to skip the first line.
-            show_possible_parses (bool): If set to True,
+            encoding (str): Encoding of the file being passed in. Default utf-8.
+            skip_first_line (bool): Whether or not to skip the first line. Default True.
+            show_possible_parses (bool): If set to True, prints out all possible parses of invalid rows.
+                Default False.
 
         Returns:
             Parsed. Parsed object which holds processed lines, invalid lines, and
@@ -156,48 +159,51 @@ class Fixer:
         first_row_is_header = skip_first_line
 
         line_count = 0
-        with open(filepath) as file:
-            for line in file:
-                line = line.strip()
-                if not skip_first_line:
-                    # Process the line
-                    processed_entry = self.process_row(
-                        new_entry=line,
-                        show_possible_parses=show_possible_parses,
-                        line_index=line_count,
-                    )
-                    # If there exists a single path, there is a valid parsing
-                    if processed_entry is not None:
-                        processed_csv = self._add_valid_entry(
-                            processed=processed_csv, entry=processed_entry
-                        )
-                    # else, add it to invalid entries list
-                    else:
-                        processed_csv = self._add_invalid_entry(
-                            invalid_entries=invalid_entries,
-                            processed=processed_csv,
+        try:
+            with open(filepath, mode="rt", encoding=encoding) as file:
+                for line in file:
+                    line = line.strip()
+                    if not skip_first_line:
+                        # Process the line
+                        processed_entry = self.process_row(
+                            new_entry=line,
+                            show_possible_parses=show_possible_parses,
                             line_index=line_count,
-                            entry=line,
                         )
-                    line_count += 1
-                else:
-                    skip_first_line = not skip_first_line
-                    line_count += 1
-        total_entries = line_count - 1 if skip_first_line else line_count
+                        # If there exists a single path, there is a valid parsing
+                        if processed_entry is not None:
+                            processed_csv = self._add_valid_entry(
+                                processed=processed_csv, entry=processed_entry
+                            )
+                        # else, add it to invalid entries list
+                        else:
+                            processed_csv = self._add_invalid_entry(
+                                invalid_entries=invalid_entries,
+                                processed=processed_csv,
+                                line_index=line_count,
+                                entry=line,
+                            )
+                        line_count += 1
+                    else:
+                        skip_first_line = not skip_first_line
+                        line_count += 1
+            total_entries = line_count - 1 if skip_first_line else line_count
 
-        # Create parsed object for user to interact with
-        parsed = Parsed.new(
-            schema=self.schema,
-            processed_csv=processed_csv,
-            invalid_entries=invalid_entries,
-            skip_first_line=first_row_is_header,
-        )
+            # Create parsed object for user to interact with
+            parsed = Parsed.new(
+                schema=self.schema,
+                processed_csv=processed_csv,
+                invalid_entries=invalid_entries,
+                skip_first_line=first_row_is_header,
+            )
 
-        print(
-            f"File has been processed!\nNumber of total entries: {total_entries}\
-            \n Number of invalid entries: {parsed.invalid_entries_count()}"
-        )
-        return parsed
+            print(
+                f"File has been processed!\nNumber of total entries: {total_entries}\
+                \n Number of invalid entries: {parsed.invalid_entries_count()}"
+            )
+            return parsed
+        except UnicodeEncodeError:
+            logger.warning(f"Encoding invalid -- {encoding}. Failed to process file.")
 
     def _add_valid_entry(self, processed: str, entry: ParsedEntry) -> str:
         """
