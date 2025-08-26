@@ -112,7 +112,9 @@ class Schema:
         Prints out information about the current schema.
         """
         schema_df = pd.DataFrame(
-            columns=["name", "type", "nullable", "has commas", "has spaces", "format"]
+            columns=list(
+                ["name", "type", "nullable", "has commas", "has spaces", "format"]
+            )
         )
         for column_name, column in list(self.columns.items()):
             schema_df.loc[len(schema_df)] = [

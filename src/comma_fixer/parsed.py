@@ -61,6 +61,9 @@ class Parsed:
         Exports valid entries to CSV at specified filepath.
 
         Converts valid entries into DataFrame before exporting to CSV.
+
+        Args:
+            filepath (str): Filepath of CSV file to create and write to.
         """
         processed_to_csv = pd.DataFrame(self._schema.get_series_dict())
         for line_number, line in enumerate(self._processed.split("\n")):
@@ -71,6 +74,20 @@ class Parsed:
                 processed_to_csv.loc[len(processed_to_csv)] = parsed_csv
         logger.info(processed_to_csv.info())
         return processed_to_csv.to_csv(filepath, index=False)
+
+    def convert_to_dataframe_best_effort(self) -> pd.DataFrame:
+        """
+        Converts valid entries into a DataFrame.
+        """
+        convert_to_dataframe = pd.DataFrame(self._schema.get_series_dict())
+        for line_number, line in enumerate(self._processed.split("\n")):
+            if self._skip_first_line:
+                line_number += 1
+            if (line_number, line) not in self._invalid_entries:
+                parsed_csv = list(csv.reader([line]))[0]
+                convert_to_dataframe.loc[len(convert_to_dataframe)] = parsed_csv
+        logger.info(convert_to_dataframe.info())
+        return convert_to_dataframe
 
     def print_all_invalid_entries(self):
         """
