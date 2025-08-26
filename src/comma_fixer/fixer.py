@@ -133,6 +133,26 @@ class Fixer:
         skip_first_line: bool = True,
         show_possible_parses: bool = False,
     ) -> Parsed:
+        """
+        Private function with main logic for processing a CSV file line by line using schema,
+        and identifies invalid entries.
+
+        If `show_possible_parses` is set to True, prints out possible parses of invalid entries
+        if and only if the invalid entry has multiple possible parsings, and the parsing does
+        not result in a null token being placed into a non-nullable column.
+
+        After processing, prints out the number of valid entries against invalid entries.
+
+        Args:
+            file (TextIOWrapper): TextIOWrapper stream to read from.
+            skip_first_line (bool): Whether or not to skip the first line. Default True.
+            show_possible_parses (bool): If set to True, prints out all possible parses of invalid rows.
+                Default False.
+
+        Returns:
+            Parsed. Parsed object which holds processed lines, invalid lines, and
+            function to export parsed lines to CSV.
+        """
         processed_csv: str = ""
         invalid_entries: list[InvalidEntry] = list()
         first_row_is_header = skip_first_line
