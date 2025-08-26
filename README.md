@@ -79,11 +79,20 @@ parsed = fixer.fix_file("/path/to/csv/file.csv")
 The `fix_file` function will process each line at a time and determine whether there is a valid parsing such that the tokens
 can be placed in a valid column.
 
-Additional arguments can be supplied on whether to skip the first line, or to display the possible parsings of invalid rows (rows
-which are unable to be parsed due to having multiple possible parses).
+Aside from passing in a filepath, a `TextIOWrapper` object can also be passed
+if the user is reading from the file themselves via `open()`.
 
 ```python
-fixer.fix_file("/path/to/csv/file.csv", skip_first_line=True, show_possible_parses=True)
+my_file = open("/path/to/csv/file.csv", "r", encoding="Cp874") # Thai encoding
+fixer.fix_file(file=my_file)
+```
+
+Additional arguments can be supplied on whether to skip the first line, or to display the possible parsings of invalid rows (rows
+which are unable to be parsed due to having multiple possible parses), as well as
+specify the encoding to use for the file (default is utf-8).
+
+```python
+fixer.fix_file("/path/to/csv/file.csv", skip_first_line=True, show_possible_parses=True, encoding="utf-8")
 ```
 
 Individual lines can also be processed, but will not be added to a Parsed object, as each Parsed object is dependent on the input file.
