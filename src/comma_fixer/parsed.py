@@ -56,7 +56,7 @@ class Parsed:
             _skip_first_line=skip_first_line,
         )
 
-    def export_to_csv_best_effort(self, filepath: str):
+    def export_to_csv_best_effort(self, filepath: str, encoding: str = "utf-8"):
         """
         Exports valid entries to CSV at specified filepath.
 
@@ -64,6 +64,7 @@ class Parsed:
 
         Args:
             filepath (str): Filepath of CSV file to create and write to.
+            encoding (str): Encoding to use when exporting to CSV. Default "utf-8".
         """
         processed_to_csv = pd.DataFrame(self._schema.get_series_dict())
         for line_number, line in enumerate(self._processed.split("\n")):
@@ -73,7 +74,7 @@ class Parsed:
                 parsed_csv = list(csv.reader([line]))[0]
                 processed_to_csv.loc[len(processed_to_csv)] = parsed_csv
         logger.info(processed_to_csv.info())
-        return processed_to_csv.to_csv(filepath, index=False)
+        return processed_to_csv.to_csv(filepath, index=False, encoding=encoding)
 
     def convert_to_dataframe_best_effort(self) -> pd.DataFrame:
         """
@@ -97,6 +98,37 @@ class Parsed:
         print("Index\tLine entry")
         for invalid_index, invalid_line in self._invalid_entries:
             print(f"{invalid_index}\t{invalid_line}")
+
+    def export_invalid_entries_to_csv(self, filepath: str, encoding: str = "utf-8"):
+        """
+        Exports invalid entries to CSV at specified filepath.
+
+        Writes line index respective to original input CSV file of each 
+        invalid entry into DataFrame object and exports to CSV.
+
+        Args:
+            filepath (str): Filepath of CSV file to create and write to.
+            encoding (str): Encoding to use when exporting to CSV. Default "utf-8".
+        """
+        processed_to_csv = pd.DataFrame(columns=["line number", "invalid entry"])
+        for invalid_index, invalid_line in self._invalid_entries:
+            processed_to_csv.loc[len(processed_to_csv)] = [invalid_index, invalid_line]
+        logger.info(processed_to_csv.info())
+        return processed_to_csv.to_csv(filepath, index=False, encoding=encoding)
+    
+    def convert_invalid_entries_to_dataframe(self):
+        """
+        Returns invalid entries as a dataframe of line indices and invalid entries.
+
+        Args:
+            filepath (str): Filepath of CSV file to create and write to.
+            encoding (str): Encoding to use when exporting to CSV. Default "utf-8".
+        """
+        processed_to_csv = pd.DataFrame(columns=["line number", "invalid entry"])
+        for invalid_index, invalid_line in self._invalid_entries:
+            processed_to_csv.loc[len(processed_to_csv)] = [invalid_index, invalid_line]
+        logger.info(processed_to_csv.info())
+        return processed_to_csv
 
     def invalid_entries_count(self) -> int:
         return len(self._invalid_entries)
