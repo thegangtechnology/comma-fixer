@@ -103,7 +103,7 @@ class Parsed:
         """
         Exports invalid entries to CSV at specified filepath.
 
-        Writes line index respective to original input CSV file of each 
+        Writes line index respective to original input CSV file of each
         invalid entry into DataFrame object and exports to CSV.
 
         Args:
@@ -115,7 +115,7 @@ class Parsed:
             processed_to_csv.loc[len(processed_to_csv)] = [invalid_index, invalid_line]
         logger.info(processed_to_csv.info())
         return processed_to_csv.to_csv(filepath, index=False, encoding=encoding)
-    
+
     def convert_invalid_entries_to_dataframe(self):
         """
         Returns invalid entries as a dataframe of line indices and invalid entries.
