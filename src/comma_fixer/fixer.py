@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import time
 from dataclasses import dataclass
@@ -7,7 +8,6 @@ from typing import Optional, TypeAlias
 
 import networkx as nx
 import numpy as np
-import math
 from networkx import NetworkXNoPath, NodeNotFound
 
 from comma_fixer.parsed import Parsed
@@ -704,7 +704,10 @@ class Fixer:
                 logger.warning("Source node (0,0) not found")
             return None
 
-def create_chunks(filepath: str, lines_per_chunk: Optional[int], skip_first_line: bool) -> list[StringIO]:
+
+def create_chunks(
+    filepath: str, lines_per_chunk: Optional[int], skip_first_line: bool
+) -> list[StringIO]:
     """
     Creates a list of chunks for the user to manually run fix_file on.
     """
@@ -713,15 +716,17 @@ def create_chunks(filepath: str, lines_per_chunk: Optional[int], skip_first_line
             if skip_first_line:
                 f.readline()
             all_text = f.read()
-            data = all_text.split('\n')
-            chunks: List[StringIO] = list()
+            data = all_text.split("\n")
+            chunks: list[StringIO] = list()
             if lines_per_chunk is None:
-                chunk_size = int(len(data)/os.cpu_count())
+                chunk_size = int(len(data) / os.cpu_count())
             else:
                 chunk_size = lines_per_chunk
-            num_chunks = math.ceil(len(data)/chunk_size)
+            num_chunks = math.ceil(len(data) / chunk_size)
             for i in range(num_chunks):
-                chunks.append(StringIO('\n'.join(data[i*chunk_size:(i+1)*chunk_size])))
+                chunks.append(
+                    StringIO("\n".join(data[i * chunk_size : (i + 1) * chunk_size]))
+                )
             return chunks
     except Exception as e:
         print(e)
