@@ -126,7 +126,7 @@ class Fixer:
                             "Path failed - null entry in non-nullable column."
                         )
                 else:
-                    print(processed_path)
+                    logger.warning(processed_path)
                     processed_paths.append(processed_path)
         return processed_paths
 
@@ -208,7 +208,7 @@ class Fixer:
         file: str | TextIOWrapper | StringIO,
         encoding: str = "utf-8",
         skip_first_line: bool = True,
-        show_possible_parses: bool = False,
+        log_possible_parses: bool = False,
         log_file: bool = False,
     ) -> Parsed:
         """
@@ -229,7 +229,7 @@ class Fixer:
                 opened TextIOWrapper of said file.
             encoding (str): Encoding of the file being passed in. Default utf-8.
             skip_first_line (bool): Whether or not to skip the first line. Default True.
-            show_possible_parses (bool): If set to True, prints out all possible parses of invalid rows.
+            log_possible_parses (bool): If set to True, logs all possible parses of invalid rows.
                 Default False.
             log_file (bool): If set to True, creates a log file. Default False.
 
@@ -239,7 +239,6 @@ class Fixer:
         """
         named_tuple = time.localtime()  # get struct_time
         time_string = time.strftime("%Y%m%d_%H%M%S", named_tuple)
-        print(log_file, "./logs/comma_fixer_{time_string}.log")
         if log_file:
             basedir = f"{os.path.curdir}/logs"
             if not os.path.exists(basedir):
@@ -249,11 +248,13 @@ class Fixer:
                 level=logging.INFO,
                 force=True,
             )
+        else:
+            logging.basicConfig(level=logging.WARNING, force=True)
         if type(file) is TextIOWrapper or type(file) is StringIO:
             return self.__process_file(
                 file=file,
                 skip_first_line=skip_first_line,
-                show_possible_parses=show_possible_parses,
+                show_possible_parses=log_possible_parses,
             )
         else:
             try:
@@ -261,7 +262,7 @@ class Fixer:
                     return self.__process_file(
                         file=file,
                         skip_first_line=skip_first_line,
-                        show_possible_parses=show_possible_parses,
+                        show_possible_parses=log_possible_parses,
                     )
             except UnicodeEncodeError:
                 logger.warning(
