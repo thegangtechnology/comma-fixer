@@ -126,3 +126,15 @@ class Schema:
                 column.get_format(),
             ]
         return schema_df.style
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Schema):
+            return False
+        else:
+            if not len(self.columns) == len(other.columns):
+                return False
+            # Check if the columns are exactly the same
+            for self_col, other_col in zip(self.columns, other.columns):
+                if not self_col == other_col:
+                    return False
+            return True

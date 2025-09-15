@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import time
 from dataclasses import dataclass
@@ -702,3 +703,30 @@ class Fixer:
             else:
                 logger.warning("Source node (0,0) not found")
             return None
+
+
+def create_chunks(
+    filepath: str, lines_per_chunk: Optional[int], skip_first_line: bool
+) -> list[StringIO]:
+    """
+    Creates a list of chunks for the user to manually run fix_file on.
+    """
+    try:
+        with open(filepath) as f:
+            if skip_first_line:
+                f.readline()
+            all_text = f.read()
+            data = all_text.split("\n")
+            chunks: list[StringIO] = list()
+            if lines_per_chunk is None:
+                chunk_size = int(len(data) / os.cpu_count())
+            else:
+                chunk_size = lines_per_chunk
+            num_chunks = math.ceil(len(data) / chunk_size)
+            for i in range(num_chunks):
+                chunks.append(
+                    StringIO("\n".join(data[i * chunk_size : (i + 1) * chunk_size]))
+                )
+            return chunks
+    except Exception as e:
+        print(e)

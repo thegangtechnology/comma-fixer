@@ -132,3 +132,20 @@ class Parsed:
 
     def invalid_entries_count(self) -> int:
         return len(self._invalid_entries)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Parsed):
+            return False
+        else:
+            if not len(self._processed) == len(other._processed) or not len(
+                self._invalid_entries
+            ) == len(other._invalid_entries):
+                return False
+            # Check if the columns are exactly the same
+            if not self._schema == other._schema:
+                return False
+            if not self._invalid_entries == other._invalid_entries:
+                return False
+            if not self._processed == other._processed:
+                return False
+            return True

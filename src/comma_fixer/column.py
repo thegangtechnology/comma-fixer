@@ -328,3 +328,28 @@ class Column:
         Returns whether elements can be placed in this column.
         """
         return self._is_valid(token)
+
+    def __eq__(self, other) -> bool:
+        """
+        Compares if the current object and `other` are equal.
+
+        Args:
+            other (any): Object to compare with.
+
+        Returns:
+            bool. True if both objects are equal.
+        """
+        if not isinstance(other, Column):
+            return False
+        else:
+            if (
+                not self._name == other._name
+                or not self._data_type == other._data_type
+                or not self._nullable == other._nullable
+                or not self._has_commas == other._has_commas
+                or not self._has_spaces == other._has_spaces
+                or not self._format == other._format
+            ):
+                return False
+            else:
+                return True
