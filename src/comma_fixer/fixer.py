@@ -1,12 +1,12 @@
 import logging
+import os
+import time
 from dataclasses import dataclass
-from io import TextIOWrapper, StringIO
+from io import StringIO, TextIOWrapper
 from typing import Optional, TypeAlias
 
 import networkx as nx
 import numpy as np
-import time
-import os
 from networkx import NetworkXNoPath, NodeNotFound
 
 from comma_fixer.parsed import Parsed
@@ -30,6 +30,7 @@ TypeAlias for invalid entries, storing line index and the line entry.
 """
 logger = logging.getLogger("Fixer Logs")
 logging.basicConfig(level=logging.ERROR)
+
 
 @dataclass
 class Fixer:
@@ -208,7 +209,7 @@ class Fixer:
         encoding: str = "utf-8",
         skip_first_line: bool = True,
         show_possible_parses: bool = False,
-        log_file: bool = False
+        log_file: bool = False,
     ) -> Parsed:
         """
         Processes a CSV file line by line using schema,
@@ -218,7 +219,7 @@ class Fixer:
         if and only if the invalid entry has multiple possible parsings, and the parsing does
         not result in a null token being placed into a non-nullable column.
 
-        If `log_file` is set to True, creates a log folder in the current directory, and saves the logs 
+        If `log_file` is set to True, creates a log folder in the current directory, and saves the logs
         into the files with the following name format: comma_fixer_%Y%m%d_%H%M%S.log.
 
         After processing, prints out the number of valid entries against invalid entries.
@@ -236,15 +237,19 @@ class Fixer:
             Parsed. Parsed object which holds processed lines, invalid lines, and
             function to export parsed lines to CSV.
         """
-        named_tuple = time.localtime() # get struct_time
+        named_tuple = time.localtime()  # get struct_time
         time_string = time.strftime("%Y%m%d_%H%M%S", named_tuple)
         print(log_file, "./logs/comma_fixer_{time_string}.log")
         if log_file:
             basedir = f"{os.path.curdir}/logs"
             if not os.path.exists(basedir):
                 os.makedirs(basedir)
-            logging.basicConfig(filename=f"./logs/comma_fixer_{time_string}.log", level=logging.INFO, force=True)
-        if type(file) is TextIOWrapper or type(file) is StringIO :
+            logging.basicConfig(
+                filename=f"./logs/comma_fixer_{time_string}.log",
+                level=logging.INFO,
+                force=True,
+            )
+        if type(file) is TextIOWrapper or type(file) is StringIO:
             return self.__process_file(
                 file=file,
                 skip_first_line=skip_first_line,
