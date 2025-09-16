@@ -209,7 +209,7 @@ class Fixer:
         file: str | TextIOWrapper | StringIO,
         encoding: str = "utf-8",
         skip_first_line: bool = True,
-        log_possible_parses: bool = False,
+        show_possible_parses: bool = False,
         log_file: bool = False,
     ) -> Parsed:
         """
@@ -230,7 +230,7 @@ class Fixer:
                 opened TextIOWrapper of said file.
             encoding (str): Encoding of the file being passed in. Default utf-8.
             skip_first_line (bool): Whether or not to skip the first line. Default True.
-            log_possible_parses (bool): If set to True, logs all possible parses of invalid rows.
+            show_possible_parses (bool): If set to True, logs all possible parses of invalid rows.
                 Default False.
             log_file (bool): If set to True, creates a log file. Default False.
 
@@ -255,7 +255,7 @@ class Fixer:
             return self.__process_file(
                 file=file,
                 skip_first_line=skip_first_line,
-                show_possible_parses=log_possible_parses,
+                show_possible_parses=show_possible_parses,
             )
         else:
             try:
@@ -263,7 +263,7 @@ class Fixer:
                     return self.__process_file(
                         file=file,
                         skip_first_line=skip_first_line,
-                        show_possible_parses=log_possible_parses,
+                        show_possible_parses=show_possible_parses,
                     )
             except UnicodeEncodeError:
                 logger.warning(
@@ -502,21 +502,6 @@ class Fixer:
                         )
                         else 1
                     )
-                    logger.info(
-                        f"[{token_index}][{column_index}] set to {validity_matrix[token_index][column_index]}"
-                    )
-                    # if (
-                    #     token_index > 0
-                    #     and not self.schema.columns[column_name].has_commas()
-                    #     and validity_matrix[token_index - 1][column_index] == 0
-                    # ):
-                    #     # If the current column does not allow commas and
-                    #     # the previous token is valid in this column,
-                    #     # then don't allow valid path to this element.
-                    #     validity_matrix[token_index][column_index] = 1
-                    #     logger.info(
-                    #         f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
-                    #     )
                     if (
                         len(token) == 0
                         and self.schema.columns[column_name].has_commas()
@@ -525,11 +510,7 @@ class Fixer:
                         # spaces, set this element to valid (may be due to typo).
                         # Process later when building string from path.
                         validity_matrix[token_index][column_index] = 0
-                        logger.info(
-                            f"[{token_index}][{column_index}] changed to {validity_matrix[token_index][column_index]}"
-                        )
                 else:
-                    logger.info(f"[{token_index}][{column_index}] not set")
                     continue
                 # For storing furthest index to stop processing further columns
                 # since we can not move across columns on the same token.
@@ -546,7 +527,6 @@ class Fixer:
                 ):
                     first_valid_index = column_index
                 if token_index != 0 and column_index > furthest_col:
-                    logger.info(f"Break at {column_index}")
                     break
             furthest_col = (
                 first_valid_index
@@ -706,11 +686,30 @@ class Fixer:
 
 
 def create_chunks(
-    filepath: str, lines_per_chunk: Optional[int], skip_first_line: bool
+    filepath: str | TextIOWrapper | StringIO,
+    lines_per_chunk: Optional[int],
+    skip_first_line: bool,
 ) -> list[StringIO]:
     """
     Creates a list of chunks for the user to manually run fix_file on.
     """
+    if type(filepath) is TextIOWrapper or type(filepath) is StringIO:
+        f = filepath
+        if skip_first_line:
+            f.readline()
+        all_text = f.read()
+        data = all_text.split("\n")
+        chunks: list[StringIO] = list()
+        if lines_per_chunk is None:
+            chunk_size = int(len(data) / os.cpu_count())
+        else:
+            chunk_size = lines_per_chunk
+        num_chunks = math.ceil(len(data) / chunk_size)
+        for i in range(num_chunks):
+            chunks.append(
+                StringIO("\n".join(data[i * chunk_size : (i + 1) * chunk_size]))
+            )
+        return chunks
     try:
         with open(filepath) as f:
             if skip_first_line:
