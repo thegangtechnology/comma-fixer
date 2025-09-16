@@ -686,7 +686,9 @@ class Fixer:
 
 
 def create_chunks(
-    filepath: str | TextIOWrapper | StringIO, lines_per_chunk: Optional[int], skip_first_line: bool
+    filepath: str | TextIOWrapper | StringIO,
+    lines_per_chunk: Optional[int],
+    skip_first_line: bool,
 ) -> list[StringIO]:
     """
     Creates a list of chunks for the user to manually run fix_file on.
@@ -694,7 +696,7 @@ def create_chunks(
     if type(filepath) is TextIOWrapper or type(filepath) is StringIO:
         f = filepath
         if skip_first_line:
-                f.readline()
+            f.readline()
         all_text = f.read()
         data = all_text.split("\n")
         chunks: list[StringIO] = list()
