@@ -203,10 +203,8 @@ class Fixer:
             \n Number of invalid entries: {parsed.invalid_entries_count()}"
         )
         return parsed
-    
-    def __setup_log_file(
-            self
-    ):
+
+    def __setup_log_file(self):
         named_tuple = time.localtime()  # get struct_time
         time_string = time.strftime("%Y%m%d_%H%M%S", named_tuple)
         basedir = f"{os.path.curdir}/logs"
@@ -217,7 +215,6 @@ class Fixer:
             level=logging.INFO,
             force=True,
         )
-        
 
     def fix_file(
         self,
