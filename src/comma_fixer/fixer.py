@@ -4,7 +4,7 @@ import os
 import time
 from dataclasses import dataclass
 from io import StringIO, TextIOWrapper
-from typing import Optional, TypeAlias
+from typing import Iterable, Optional, TypeAlias
 
 import networkx as nx
 import numpy as np
@@ -203,10 +203,25 @@ class Fixer:
             \n Number of invalid entries: {parsed.invalid_entries_count()}"
         )
         return parsed
+    
+    def __setup_log_file(
+            self
+    ):
+        named_tuple = time.localtime()  # get struct_time
+        time_string = time.strftime("%Y%m%d_%H%M%S", named_tuple)
+        basedir = f"{os.path.curdir}/logs"
+        if not os.path.exists(basedir):
+            os.makedirs(basedir)
+        logging.basicConfig(
+            filename=f"./logs/comma_fixer_{time_string}.log",
+            level=logging.INFO,
+            force=True,
+        )
+        
 
     def fix_file(
         self,
-        file: str | TextIOWrapper | StringIO,
+        file: str | Iterable[str],
         encoding: str = "utf-8",
         skip_first_line: bool = True,
         show_possible_parses: bool = False,
@@ -238,20 +253,11 @@ class Fixer:
             Parsed. Parsed object which holds processed lines, invalid lines, and
             function to export parsed lines to CSV.
         """
-        named_tuple = time.localtime()  # get struct_time
-        time_string = time.strftime("%Y%m%d_%H%M%S", named_tuple)
         if log_file:
-            basedir = f"{os.path.curdir}/logs"
-            if not os.path.exists(basedir):
-                os.makedirs(basedir)
-            logging.basicConfig(
-                filename=f"./logs/comma_fixer_{time_string}.log",
-                level=logging.INFO,
-                force=True,
-            )
+            self.__setup_log_file()
         else:
             logging.basicConfig(level=logging.WARNING, force=True)
-        if type(file) is TextIOWrapper or type(file) is StringIO:
+        if not isinstance(file, str):
             return self.__process_file(
                 file=file,
                 skip_first_line=skip_first_line,
@@ -686,14 +692,14 @@ class Fixer:
 
 
 def create_chunks(
-    filepath: str | TextIOWrapper | StringIO,
+    filepath: str | Iterable[str],
     lines_per_chunk: Optional[int],
     skip_first_line: bool,
 ) -> list[StringIO]:
     """
     Creates a list of chunks for the user to manually run fix_file on.
     """
-    if type(filepath) is TextIOWrapper or type(filepath) is StringIO:
+    if not isinstance(filepath, str):
         f = filepath
         if skip_first_line:
             f.readline()
