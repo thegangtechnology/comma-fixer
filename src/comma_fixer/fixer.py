@@ -91,21 +91,21 @@ class Fixer:
                 new_entry=new_entry, line_index=line_index
             )
         return parsed_entry
-    
+
     def __build_csv_row(self, processed_path: str) -> str:
         """
-        Builds the CSV format row for easy copy and pasting for 
+        Builds the CSV format row for easy copy and pasting for
         manual fixing of CSV files.
 
         Args:
             processed_path (str): A valid parse of the current row.
-        
+
         Returns:
             str. Valid parse formatted for CSV.
         """
         csv_row = ""
         for token in processed_path:
-            if ',' in token:
+            if "," in token:
                 if len(csv_row) == 0:
                     csv_row = """"{token}" """
                 else:
@@ -154,7 +154,9 @@ class Fixer:
                         )
                 else:
                     logger.info(processed_path)
-                    logger.info(f"""Correct CSV format: {self.__build_csv_row(processed_path=processed_path)}""")
+                    logger.info(
+                        f"""Correct CSV format: {self.__build_csv_row(processed_path=processed_path)}"""
+                    )
                     processed_paths.append(processed_path)
         return processed_paths
 
@@ -233,7 +235,7 @@ class Fixer:
 
     def __setup_log_file(self):
         """
-        Creates a log subdirectory in the current active directory where the 
+        Creates a log subdirectory in the current active directory where the
         code is being run, and writes logs to the file.
         """
         named_tuple = time.localtime()  # get struct_time
