@@ -91,6 +91,32 @@ class Fixer:
                 new_entry=new_entry, line_index=line_index
             )
         return parsed_entry
+    
+    def __build_csv_row(self, processed_path: str) -> str:
+        """
+        Builds the CSV format row for easy copy and pasting for 
+        manual fixing of CSV files.
+
+        Args:
+            processed_path (str): A valid parse of the current row.
+        
+        Returns:
+            str. Valid parse formatted for CSV.
+        """
+        csv_row = ""
+        for token in processed_path:
+            if ',' in token:
+                if len(csv_row) == 0:
+                    csv_row = """"{token}" """
+                else:
+                    csv_row = f"""{csv_row},"{token}" """
+                csv_row = csv_row.strip()
+            else:
+                if len(csv_row) == 0:
+                    csv_row = f"{token}"
+                else:
+                    csv_row = f"{csv_row},{token}"
+        return csv_row
 
     def __all_possible_processed_strings(
         self, new_entry: str, line_index: Optional[int] = None
@@ -127,7 +153,8 @@ class Fixer:
                             "Path failed - null entry in non-nullable column."
                         )
                 else:
-                    logger.warning(processed_path)
+                    logger.info(processed_path)
+                    logger.info(f"""Correct CSV format: {self.__build_csv_row(processed_path=processed_path)}""")
                     processed_paths.append(processed_path)
         return processed_paths
 
@@ -205,6 +232,10 @@ class Fixer:
         return parsed
 
     def __setup_log_file(self):
+        """
+        Creates a log subdirectory in the current active directory where the 
+        code is being run, and writes logs to the file.
+        """
         named_tuple = time.localtime()  # get struct_time
         time_string = time.strftime("%Y%m%d_%H%M%S", named_tuple)
         basedir = f"{os.path.curdir}/logs"
@@ -252,8 +283,11 @@ class Fixer:
         """
         if log_file:
             self.__setup_log_file()
+        elif show_possible_parses:
+            logging.basicConfig(level=logging.INFO, force=True)
         else:
             logging.basicConfig(level=logging.WARNING, force=True)
+
         if not isinstance(file, str):
             return self.__process_file(
                 file=file,
@@ -405,7 +439,7 @@ class Fixer:
         processed_entry = ["" for _ in range(num_cols)]
         column_names = self.schema.get_column_names()
         previous_col = -1
-        logger.info(f"Path: {path}")
+        logger.debug(f"Path: {path}")
 
         # For each node in the path, construct the processed row
         # using the tokens
@@ -662,7 +696,7 @@ class Fixer:
         # in the validity matrix.
         (num_tokens, num_columns) = validity_matrix.shape
         G = self.__create_graph(validity_matrix=validity_matrix)
-        logger.info(validity_matrix)
+        logger.debug(validity_matrix)
         try:
             return list(
                 nx.all_shortest_paths(
