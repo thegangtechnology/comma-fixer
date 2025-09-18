@@ -518,7 +518,7 @@ class Fixer:
         validity_matrix = np.ones((num_tokens, num_cols))
         furthest_col = 0
 
-        logger.info(f"Creating validity matrix for line '{new_entry}'")
+        logger.debug(f"Creating validity matrix for line '{new_entry}'")
 
         # Note that the only movements that can be done are moving
         # - south (next token is in same column)
