@@ -4,9 +4,33 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  check-runner:
     runs-on: ubuntu-latest
+    outputs:
+      runner-label: ${{ steps.set-runner.outputs.runner-label }}
+    steps:
+      - name: Set runner
+        id: set-runner
+        run: |
+          runners=$(curl -s -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.RUNNER_READER_TOKEN }}" "https://api.github.com/orgs/thegangtechnology/actions/runners")
+          available=$(echo "$runners" | jq '.runners[] | select(.status == "online" )')
+          echo $available
+          if [ -n "$available" ]; then
+            echo "runner-label=self-hosted"
+            echo "runner-label=self-hosted" >> $GITHUB_OUTPUT
+          else
+            echo "runner-label=ubuntu-latest"
+            echo "runner-label=ubuntu-latest" >> $GITHUB_OUTPUT
+          fi
+
+  test:
+    needs: [ check-runner ]
+    runs-on: ${{ needs.check-runner.outputs.runner-label }}
 
     steps:
     - name: Checkout code
